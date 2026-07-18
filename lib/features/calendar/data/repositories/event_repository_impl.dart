@@ -5,6 +5,7 @@ import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../../../../core/ai/intent_router.dart' show CalendarRepository;
 import '../../../../core/ai/intent_models.dart';
+import '../models/event_model.dart';
 
 class EventRepositoryImpl implements IEventRepository, CalendarRepository {
   final AppDatabase _db;
@@ -13,15 +14,7 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
   @override
   Future<List<EventEntity>> getAll() async {
     final rows = await _db.select(_db.calendarEvents).get();
-    return rows
-        .map((r) => EventEntity(
-              id: r.id,
-              title: r.title,
-              datetime: r.datetime,
-              location: r.location,
-              notes: r.notes,
-            ))
-        .toList();
+    return rows.map((r) => EventModel.fromDrift(r).toEntity()).toList();
   }
 
   @override
@@ -31,19 +24,18 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
     final rows = await (_db.select(_db.calendarEvents)
           ..where((t) => t.datetime.isBetweenValues(start, end)))
         .get();
-    return rows
-        .map((r) => EventEntity(id: r.id, title: r.title, datetime: r.datetime, location: r.location, notes: r.notes))
-        .toList();
+    return rows.map((r) => EventModel.fromDrift(r).toEntity()).toList();
   }
 
   @override
   Future<int> add(EventEntity event) async {
+    final model = EventModel.fromEntity(event);
     return _db.into(_db.calendarEvents).insert(
           CalendarEventsCompanion.insert(
-            title: event.title,
-            datetime: event.datetime,
-            location: Value(event.location),
-            notes: Value(event.notes),
+            title: model.title,
+            datetime: model.datetime,
+            location: Value(model.location),
+            notes: Value(model.notes),
           ),
         );
   }
@@ -53,8 +45,6 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
     await (_db.delete(_db.calendarEvents)..where((t) => t.id.equals(id))).go();
   }
 
-  /// Dipanggil oleh IntentRouter. Mengembalikan id event baru agar
-  /// bisa direlasikan oleh ReminderService (linked_intent_ref).
   @override
   Future<void> addEvent(IntentResult intent) async {
     await add(EventEntity(

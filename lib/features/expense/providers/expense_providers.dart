@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../todo/providers/todo_providers.dart' show appDatabaseProvider;
-import '../data/repositories/expense_repository_impl.dart';
+import '../data/repositories/expense_repository.dart';
 import '../domain/entities/expense_entity.dart';
-import '../domain/repositories/expense_repository.dart';
+import '../data/repositories/expense_repository.dart';
 
 final expenseRepositoryProvider = Provider<IExpenseRepository>((ref) {
   return ExpenseRepositoryImpl(db: ref.watch(appDatabaseProvider));

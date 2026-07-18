@@ -1,4 +1,4 @@
-import '../../entities/note_entity.dart';
+import '../../domain/entities/note_entity.dart';
 
 abstract class INotesRepository {
   Future<List<NoteEntity>> getAll();

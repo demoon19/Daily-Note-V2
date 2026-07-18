@@ -1,0 +1,100 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../domain/entities/app_settings_entity.dart';
+import '../../providers/settings_providers.dart';
+import '../../email/providers/email_providers.dart';
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final gmailAuthAsync = ref.watch(gmailAuthStatusProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Pengaturan', style: AppTextStyles.heading3)),
+      body: settingsAsync.when(
+        data: (settings) => ListView(
+          children: [
+            SwitchListTile(
+              title: const Text('Mode Gelap'),
+              value: settings.isDarkMode,
+              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleDarkMode(v),
+            ),
+            SwitchListTile(
+              title: const Text('Voice Input'),
+              value: settings.isVoiceEnabled,
+              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleVoice(v),
+            ),
+            SwitchListTile(
+              title: const Text('Text-to-Speech (Greeting/Motivasi)'),
+              value: settings.isTtsEnabled,
+              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleTts(v),
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Mode LLM'),
+              subtitle: Text(_llmModeLabel(settings.llmMode)),
+              trailing: DropdownButton<LlmMode>(
+                value: settings.llmMode,
+                onChanged: (mode) {
+                  if (mode != null) {
+                    ref.read(appSettingsProvider.notifier).setLlmMode(mode);
+                  }
+                },
+                items: LlmMode.values
+                    .map((m) => DropdownMenuItem(value: m, child: Text(_llmModeLabel(m))))
+                    .toList(),
+              ),
+            ),
+            const Divider(),
+            SwitchListTile(
+              title: const Text('Integrasi Email (Auto-schedule)'),
+              subtitle: const Text('Deteksi jadwal otomatis dari email masuk'),
+              value: settings.isEmailIntegrationEnabled,
+              onChanged: (v) async {
+                if (v) {
+                  await ref.read(gmailAuthStatusProvider.notifier).connect();
+                }
+                ref.read(appSettingsProvider.notifier).toggleEmailIntegration(v);
+              },
+            ),
+            gmailAuthAsync.when(
+              data: (isConnected) => ListTile(
+                leading: Icon(
+                  isConnected ? Icons.check_circle : Icons.error_outline,
+                  color: isConnected ? Colors.green : Colors.grey,
+                ),
+                title: Text(isConnected ? 'Akun Gmail terhubung' : 'Belum terhubung ke Gmail'),
+                trailing: isConnected
+                    ? TextButton(
+                        onPressed: () =>
+                            ref.read(gmailAuthStatusProvider.notifier).disconnect(),
+                        child: const Text('Putuskan'),
+                      )
+                    : null,
+              ),
+              loading: () => const ListTile(title: Text('Memeriksa status Gmail...')),
+              error: (_, __) => const ListTile(title: Text('Gagal memeriksa status Gmail')),
+            ),
+          ],
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  String _llmModeLabel(LlmMode mode) {
+    switch (mode) {
+      case LlmMode.onDeviceOnly:
+        return 'On-device saja';
+      case LlmMode.hybrid:
+        return 'Hybrid (default)';
+      case LlmMode.cloudOnly:
+        return 'Cloud saja';
+    }
+  }
+}

@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import '../../../../../core/database/app_database.dart';
-import '../../../domain/entities/note_entity.dart';
-import '../../../domain/repositories/notes_repository.dart';
 import '../../../../../core/ai/intent_router.dart' show NotesRepository;
 import '../../../../../core/ai/intent_models.dart';
+import '../../domain/entities/note_entity.dart';
+import 'notes_repository.dart';
 
 class NotesRepositoryImpl implements INotesRepository, NotesRepository {
   final AppDatabase _db;
