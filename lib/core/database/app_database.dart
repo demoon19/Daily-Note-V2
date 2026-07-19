@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'tables/tables.dart'; // export semua tabel di core/database/tables/
+import 'tabels/tabels.dart'; // export semua tabel di core/database/tabels/
 
 part 'app_database.g.dart';
 

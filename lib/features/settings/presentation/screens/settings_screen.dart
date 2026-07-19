@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../../providers/settings_providers.dart';
-import '../../email/providers/email_providers.dart';
+import '../../../../core/email/providers/email_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -14,24 +14,28 @@ class SettingsScreen extends ConsumerWidget {
     final gmailAuthAsync = ref.watch(gmailAuthStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pengaturan', style: AppTextStyles.heading3)),
+      appBar: AppBar(
+          title: const Text('Pengaturan', style: AppTextStyles.heading3)),
       body: settingsAsync.when(
         data: (settings) => ListView(
           children: [
             SwitchListTile(
               title: const Text('Mode Gelap'),
               value: settings.isDarkMode,
-              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleDarkMode(v),
+              onChanged: (v) =>
+                  ref.read(appSettingsProvider.notifier).toggleDarkMode(v),
             ),
             SwitchListTile(
               title: const Text('Voice Input'),
               value: settings.isVoiceEnabled,
-              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleVoice(v),
+              onChanged: (v) =>
+                  ref.read(appSettingsProvider.notifier).toggleVoice(v),
             ),
             SwitchListTile(
               title: const Text('Text-to-Speech (Greeting/Motivasi)'),
               value: settings.isTtsEnabled,
-              onChanged: (v) => ref.read(appSettingsProvider.notifier).toggleTts(v),
+              onChanged: (v) =>
+                  ref.read(appSettingsProvider.notifier).toggleTts(v),
             ),
             const Divider(),
             ListTile(
@@ -45,7 +49,8 @@ class SettingsScreen extends ConsumerWidget {
                   }
                 },
                 items: LlmMode.values
-                    .map((m) => DropdownMenuItem(value: m, child: Text(_llmModeLabel(m))))
+                    .map((m) => DropdownMenuItem(
+                        value: m, child: Text(_llmModeLabel(m))))
                     .toList(),
               ),
             ),
@@ -58,7 +63,9 @@ class SettingsScreen extends ConsumerWidget {
                 if (v) {
                   await ref.read(gmailAuthStatusProvider.notifier).connect();
                 }
-                ref.read(appSettingsProvider.notifier).toggleEmailIntegration(v);
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .toggleEmailIntegration(v);
               },
             ),
             gmailAuthAsync.when(
@@ -67,17 +74,22 @@ class SettingsScreen extends ConsumerWidget {
                   isConnected ? Icons.check_circle : Icons.error_outline,
                   color: isConnected ? Colors.green : Colors.grey,
                 ),
-                title: Text(isConnected ? 'Akun Gmail terhubung' : 'Belum terhubung ke Gmail'),
+                title: Text(isConnected
+                    ? 'Akun Gmail terhubung'
+                    : 'Belum terhubung ke Gmail'),
                 trailing: isConnected
                     ? TextButton(
-                        onPressed: () =>
-                            ref.read(gmailAuthStatusProvider.notifier).disconnect(),
+                        onPressed: () => ref
+                            .read(gmailAuthStatusProvider.notifier)
+                            .disconnect(),
                         child: const Text('Putuskan'),
                       )
                     : null,
               ),
-              loading: () => const ListTile(title: Text('Memeriksa status Gmail...')),
-              error: (_, __) => const ListTile(title: Text('Gagal memeriksa status Gmail')),
+              loading: () =>
+                  const ListTile(title: Text('Memeriksa status Gmail...')),
+              error: (_, __) =>
+                  const ListTile(title: Text('Gagal memeriksa status Gmail')),
             ),
           ],
         ),

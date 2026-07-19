@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
-import '../../../../core/notification/reminder_notification_service.dart';
+import '../../../../core/notification/remindere_notification_service.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../entities/reminder_entity.dart';
 import 'reminder_repository.dart';
@@ -63,8 +63,8 @@ class ReminderRepositoryImpl implements IReminderRepository, ReminderService {
   /// oleh IntentRouter sebelum memanggil method ini.
   @override
   Future<void> schedule(IntentResult intent, {int? linkedEventId}) async {
-    final offsetMinutes =
-        intent.triggerOffsetMinutes ?? AppConstants.defaultReminderOffsetMinutes;
+    final offsetMinutes = intent.triggerOffsetMinutes ??
+        AppConstants.defaultReminderOffsetMinutes;
     final baseTime = intent.datetime ?? DateTime.now();
     final triggerAt = baseTime.subtract(Duration(minutes: offsetMinutes));
 

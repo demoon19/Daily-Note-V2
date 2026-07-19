@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../intent_router.dart';
 import '../../../features/todo/data/repositories/todo_repository_impl.dart';
 import '../../../features/notes/data/repositories/notes_repository_impl.dart';
-import '../../../features/expense/data/repositories/expense_repository.dart';
+import '../../../features/expense/data/repositories/expense_repository_impl.dart';
 import '../../../features/calendar/data/repositories/event_repository_impl.dart';
 import '../../../features/reminder/data/repositories/reminder_repository_impl.dart';
 import '../../../features/todo/providers/todo_providers.dart' show appDatabaseProvider;

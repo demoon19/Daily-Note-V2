@@ -4,7 +4,7 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/todo_entity.dart';
 import '../../providers/todo_providers.dart';
-import '../widgets/todo_tile.dart';
+import '../widgets/todo_title.dart';
 
 class TodoScreen extends ConsumerWidget {
   const TodoScreen({super.key});
@@ -15,7 +15,8 @@ class TodoScreen extends ConsumerWidget {
     final controller = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('To-do List', style: AppTextStyles.heading3)),
+      appBar: AppBar(
+          title: const Text('To-do List', style: AppTextStyles.heading3)),
       body: Column(
         children: [
           Padding(

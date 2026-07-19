@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/repositories/settings_repository_impl.dart';
+import '../domain/repositories/settings_repository_impl.dart';
 import '../domain/entities/app_settings_entity.dart';
 import '../domain/repositories/settings_repository.dart';
 
@@ -22,7 +22,8 @@ class AppSettingsNotifier extends StateNotifier<AsyncValue<AppSettingsEntity>> {
     state = await AsyncValue.guard(() => _repository.load());
   }
 
-  Future<void> _update(AppSettingsEntity Function(AppSettingsEntity) transform) async {
+  Future<void> _update(
+      AppSettingsEntity Function(AppSettingsEntity) transform) async {
     final current = state.value ?? const AppSettingsEntity();
     final updated = transform(current);
     state = AsyncValue.data(updated);
