@@ -1,35 +1,76 @@
 import 'dart:async';
-import '../network/api_client.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:googleapis/gmail/v1.dart' as gmail;
 
-/// Mendengarkan email masuk via Gmail API. OAuth & client secret
-/// WAJIB ditangani di backend proxy (Cloudflare Workers/Supabase
-/// Edge Functions) — tidak boleh disimpan di app.
-/// Gunakan push notification (Gmail Pub/Sub) jika tersedia,
-/// polling interval hanya sebagai fallback.
+/// Mendengarkan email masuk via Gmail API langsung dari aplikasi
+/// menggunakan kredensial OAuth 2.0.
 class EmailListenerService {
-  final ApiClient _apiClient;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+    scopes: [
+      gmail.GmailApi.gmailReadonlyScope,
+    ],
+  );
+
   Timer? _pollingTimer;
 
-  EmailListenerService({required ApiClient apiClient})
-      : _apiClient = apiClient;
-
-  /// Dipanggil sekali untuk mendaftarkan push notification
-  /// (jika backend sudah mendukung Gmail Pub/Sub).
-  Future<void> registerPushNotification() async {
-    await _apiClient.post(path: '/email/register-push');
+  Future<bool> isSignedIn() async {
+    return await _googleSignIn.isSignedIn();
   }
 
-  /// Fallback: polling berkala jika push tidak tersedia.
+  Future<void> signIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      print("Error signing in: $error");
+    }
+  }
+
+  Future<void> signOut() async {
+    await _googleSignIn.disconnect();
+  }
+
+  Future<void> registerPushNotification() async {
+    // Tanpa backend, kita tidak bisa dengan mudah setup webhooks push notification
+    // karena localhost tidak bisa menerima webhook dari google server.
+    // Jadi kita biarkan kosong dan bergantung pada polling lokal.
+  }
+
   void startPolling({
     required void Function(List<Map<String, dynamic>> newEmails) onNewEmails,
     Duration interval = const Duration(minutes: 15),
   }) {
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(interval, (_) async {
-      final response = await _apiClient.get(path: '/email/unread');
-      if (response.statusCode == 200) {
-        // TODO: decode response.body -> List<Map<String, dynamic>>
-        onNewEmails(const []);
+      final isLogged = await isSignedIn();
+      if (!isLogged) return;
+
+      try {
+        final client = await _googleSignIn.authenticatedClient();
+        if (client == null) return;
+
+        final gmailApi = gmail.GmailApi(client);
+        // Ambil email baru (misalnya menggunakan historyId atau ambil yg belum dibaca)
+        // Di sini contoh sederhana mengambil email unread dari inbox.
+        final response = await gmailApi.users.messages.list('me', q: 'is:unread');
+        
+        final messages = response.messages;
+        if (messages != null && messages.isNotEmpty) {
+          List<Map<String, dynamic>> newEmailsList = [];
+          for (var msg in messages.take(5)) {
+            final msgDetail = await gmailApi.users.messages.get('me', msg.id!);
+            newEmailsList.add({
+              'id': msgDetail.id,
+              'snippet': msgDetail.snippet,
+              // Anda bisa menambahkan parsing payload body/header di sini
+            });
+          }
+          onNewEmails(newEmailsList);
+        }
+      } catch (e) {
+        print("Polling error: $e");
       }
     });
   }

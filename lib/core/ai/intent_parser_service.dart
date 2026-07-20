@@ -1,6 +1,4 @@
 import 'llm_client.dart';
-import 'on_device_llm_client.dart';
-import 'cloud_llm_client.dart';
 import 'intent_models.dart';
 
 /// Orkestrasi utama LLM Intent Engine.
@@ -8,8 +6,8 @@ import 'intent_models.dart';
 /// on-device parse -> validate JSON -> jika gagal -> cloud fallback
 /// -> validate lagi -> jika gagal juga -> minta klarifikasi ke user.
 class IntentParserService {
-  final OnDeviceLlmClient onDeviceClient;
-  final CloudLlmClient cloudClient;
+  final LlmClient onDeviceClient;
+  final LlmClient cloudClient;
 
   IntentParserService({
     required this.onDeviceClient,
