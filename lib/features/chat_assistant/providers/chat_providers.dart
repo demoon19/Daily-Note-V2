@@ -6,6 +6,11 @@ import '../../../core/ai/providers/intent_router_provider.dart';
 import '../../../core/ai/intent_router.dart';
 import '../../../core/utils/logger.dart';
 import '../domain/entities/chat_message_entity.dart';
+import '../../calendar/providers/calendar_providers.dart';
+import '../../todo/providers/todo_providers.dart';
+import '../../expense/providers/expense_providers.dart';
+import '../../home/providers/home_providers.dart';
+import '../../summary/providers/summary_providers.dart';
 
 const _uuid = Uuid();
 
@@ -62,6 +67,14 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
       );
 
       await router.route(response);
+
+      // Invalidate UI providers so screens refresh immediately
+      _ref.invalidate(eventListProvider);
+      _ref.invalidate(eventsByDateProvider);
+      _ref.invalidate(todoListProvider);
+      _ref.invalidate(expenseListProvider);
+      _ref.invalidate(homeSummaryProvider);
+      _ref.invalidate(weeklySummaryProvider);
 
       // Jika bukan tipe chat murni (ada intent actionable yang tersimpan),
       // beri konfirmasi ringkas ke user.

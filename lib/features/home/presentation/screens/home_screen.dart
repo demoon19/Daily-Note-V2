@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/date_utils.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../providers/home_providers.dart';
+import '../../../calendar/providers/calendar_providers.dart';
+import '../../../summary/providers/summary_providers.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/app_text_field.dart';
-import '../../../../routes/app_router.dart';
-import '../../../chat_assistant/providers/chat_providers.dart';
-import '../../../chat_assistant/presentation/screens/chat_screen.dart'
-    show speechToTextServiceProvider, isListeningProvider;
-import '../widgets/greeting_widget.dart';
-import '../widgets/motivation_widget.dart';
-import '../widgets/daily_summary_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -18,121 +17,247 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final TextEditingController _controller = TextEditingController();
-
-  void _sendQuickInput() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    // Kirim lewat chat provider yang sama, lalu arahkan user ke chat screen
-    // untuk melihat hasil/balasan.
-    ref.read(chatMessagesProvider.notifier).sendMessage(text);
-    _controller.clear();
-    context.push(AppRoutes.chat);
-  }
-
-  Future<void> _toggleMic() async {
-    final service = ref.read(speechToTextServiceProvider);
-    final isListening = ref.read(isListeningProvider);
-    if (isListening) {
-      await service.stopListening();
-      ref.read(isListeningProvider.notifier).state = false;
-      return;
-    }
-    ref.read(isListeningProvider.notifier).state = true;
-    await service.startListening(
-      onResult: (recognizedText) => _controller.text = recognizedText,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isListening = ref.watch(isListeningProvider);
+    final now = DateTime.now();
+    final dateStr = '${AppDateUtils.formatDayName(now)}, ${AppDateUtils.formatDate(now)}';
+
+    final homeSummaryAsync = ref.watch(homeSummaryProvider);
+    final eventsAsync = ref.watch(eventsByDateProvider);
+    final weeklySummaryAsync = ref.watch(weeklySummaryProvider);
+
+    final summary = homeSummaryAsync.valueOrNull;
+    final events = eventsAsync.valueOrNull ?? [];
+    final weeklySummary = weeklySummaryAsync.valueOrNull;
+
+    final agendaCount = summary?.totalEventsToday ?? 0;
+    final todoCount = summary?.totalPendingTodos ?? 0;
+    final expense = summary?.totalExpenseToday ?? 0;
+    
+    // Sort and filter events (only upcoming today, or just today's events if none upcoming)
+    final upcomingEvents = events.where((e) => e.datetime.isAfter(now)).toList()
+      ..sort((a, b) => a.datetime.compareTo(b.datetime));
+    
+    final displayEvents = upcomingEvents.isNotEmpty ? upcomingEvents.take(3).toList() : events.take(3).toList();
+
+    int weeklyCompleted = weeklySummary?.totalTodosCompleted ?? 0;
+    int weeklyPending = weeklySummary?.dailyBreakdown.fold<int>(0, (sum, d) => sum + (d.totalTodosPending)) ?? 0;
+    int weeklyTotal = weeklyCompleted + weeklyPending;
+    double weeklyPct = weeklyTotal > 0 ? (weeklyCompleted / weeklyTotal) : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daily Note'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push(AppRoutes.settings),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 90),
           children: [
-            const GreetingWidget(),
-            const SizedBox(height: 16),
-            const MotivationWidget(),
-            const SizedBox(height: 16),
-            const DailySummaryCard(),
-            const SizedBox(height: 24),
-            Text(
-              'Apa yang bisa kubantu?',
-              style: Theme.of(context).textTheme.displaySmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  dateStr,
+                  style: AppTextStyles.eyebrow.copyWith(color: AppColors.teal),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined, color: AppColors.teal),
+                  onPressed: () {
+                    context.push('/settings');
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _controller,
-              hintText: 'Mis: "Ingatkan meeting jam 9 besok"',
-              isListening: isListening,
-              onMicPressed: _toggleMic,
-              onSubmitted: _sendQuickInput,
+            const SizedBox(height: 10),
+            
+            // Greeting Card
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0x242DD4BF),
+                    Color(0x0F38BDF8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: AppColors.teal.withOpacity(0.25)),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Selamat pagi, User 👋', style: AppTextStyles.eyebrow),
+                  const SizedBox(height: 6),
+                  Text(
+                    '"Progres kecil hari ini, hasil besar minggu ini."',
+                    style: AppTextStyles.heading3,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Kamu punya $agendaCount agenda dan $todoCount tugas menunggu. Mulai dari yang paling dekat waktunya, yuk.',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            _QuickAccessGrid(),
+            const SizedBox(height: 14),
+
+            // Stats
+            Row(
+              children: [
+                _buildStatChip(agendaCount.toString(), 'Agenda hari ini', AppColors.teal),
+                const SizedBox(width: 10),
+                _buildStatChip(todoCount.toString(), 'Todo aktif', AppColors.cyan),
+                const SizedBox(width: 10),
+                _buildStatChip(_formatShortCurrency(expense), 'Pengeluaran', AppColors.rose),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Agenda
+            Text('AGENDA BERIKUTNYA', style: AppTextStyles.eyebrow.copyWith(color: AppColors.textDisabled)),
+            const SizedBox(height: 9),
+            if (displayEvents.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16.0),
+                child: Text('Tidak ada agenda hari ini.', style: TextStyle(color: AppColors.textDisabled, fontSize: 13)),
+              )
+            else
+              ...displayEvents.map((e) => _buildAgendaItem(
+                AppDateUtils.formatTime(e.datetime),
+                e.title,
+                e.location ?? e.notes ?? '',
+                AppColors.teal,
+              )),
+            
+            const SizedBox(height: 16),
+            Text('RINGKASAN MINGGUAN', style: AppTextStyles.eyebrow.copyWith(color: AppColors.textDisabled)),
+            const SizedBox(height: 9),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$weeklyCompleted tugas selesai · $weeklyPending rencana meleset', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: AppColors.surface3,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: weeklyPct,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.teal, AppColors.cyan],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text('${(weeklyPct * 100).toInt()}%', style: AppTextStyles.caption.copyWith(fontFamily: AppTextStyles.fontMono.fontFamily)),
+                    ],
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-}
 
-class _QuickAccessGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      ('Jadwal', Icons.calendar_today_outlined, AppRoutes.calendar),
-      ('To-do', Icons.check_circle_outline, AppRoutes.todo),
-      ('Catatan', Icons.note_outlined, AppRoutes.notes),
-      ('Pengeluaran', Icons.attach_money_outlined, AppRoutes.expense),
-      ('Reminder', Icons.notifications_outlined, AppRoutes.reminder),
-      ('Ringkasan', Icons.bar_chart_outlined, AppRoutes.dailySummary),
-    ];
+  String _formatShortCurrency(double amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}jt';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}rb';
+    }
+    return CurrencyFormatter.format(amount).replaceAll('Rp ', '');
+  }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1,
-      ),
-      itemBuilder: (context, index) {
-        final (label, icon, route) = items[index];
-        return InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => GoRouter.of(context).push(route),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Theme.of(context).dividerColor),
+  Widget _buildStatChip(String numText, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              numText,
+              style: AppTextStyles.heading2.copyWith(color: color, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textDisabled)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAgendaItem(String time, String title, String sub, Color dotColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.line),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            child: Text(
+              time,
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontMono.fontFamily,
+                fontSize: 11,
+                color: AppColors.cyan,
+              ),
+            ),
+          ),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, size: 28),
-                const SizedBox(height: 8),
-                Text(label, style: Theme.of(context).textTheme.labelSmall),
+                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                if (sub.isNotEmpty)
+                  Text(sub, style: const TextStyle(fontSize: 10.5, color: AppColors.textDisabled)),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

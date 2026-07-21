@@ -15,7 +15,7 @@ class CalendarScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(eventsByDateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Jadwal', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('Jadwal', style: AppTextStyles.heading3)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEventDialog(context, ref, selectedDate),
         child: const Icon(Icons.add),
@@ -23,10 +23,45 @@ class CalendarScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              AppDateUtils.formatDate(selectedDate),
-              style: AppTextStyles.heading2,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    ref.read(selectedDateProvider.notifier).state = 
+                        selectedDate.subtract(const Duration(days: 1));
+                  },
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (date != null) {
+                        ref.read(selectedDateProvider.notifier).state = date;
+                      }
+                    },
+                    child: Text(
+                      AppDateUtils.formatDate(selectedDate),
+                      style: AppTextStyles.heading2,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    ref.read(selectedDateProvider.notifier).state = 
+                        selectedDate.add(const Duration(days: 1));
+                  },
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -51,27 +86,76 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddEventDialog(BuildContext context, WidgetRef ref, DateTime date) {
+  void _showAddEventDialog(BuildContext context, WidgetRef ref, DateTime initialDate) {
     final titleController = TextEditingController();
+    DateTime selectedDateTime = initialDate;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Jadwal Baru'),
-        content: TextField(controller: titleController, decoration: const InputDecoration(hintText: 'Judul acara')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
-          TextButton(
-            onPressed: () {
-              if (titleController.text.trim().isEmpty) return;
-              ref.read(calendarActionsProvider.notifier).addEvent(
-                    EventEntity(title: titleController.text.trim(), datetime: date),
-                  );
-              Navigator.pop(ctx);
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Jadwal Baru'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(hintText: 'Judul acara'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      TextButton(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDateTime,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (date != null) {
+                            if (!context.mounted) return;
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                            );
+                            if (time != null) {
+                              setState(() {
+                                selectedDateTime = DateTime(
+                                  date.year, date.month, date.day,
+                                  time.hour, time.minute,
+                                );
+                              });
+                            }
+                          }
+                        },
+                        child: const Text('Ubah'),
+                      )
+                    ],
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+                TextButton(
+                  onPressed: () {
+                    if (titleController.text.trim().isEmpty) return;
+                    ref.read(calendarActionsProvider.notifier).addEvent(
+                          EventEntity(title: titleController.text.trim(), datetime: selectedDateTime),
+                        );
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -68,7 +68,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.listen(chatMessagesProvider, (_, __) => _scrollToBottom());
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Assistant', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('AI Assistant', style: AppTextStyles.heading3)),
       body: Column(
         children: [
           Expanded(

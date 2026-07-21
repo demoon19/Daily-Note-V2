@@ -51,10 +51,11 @@ Aturan:
     String userInput, {
     String source = 'text',
   }) async {
+    final nowStr = DateTime.now().toIso8601String();
     final systemPrompt = source == 'email'
-        ? '$_baseSystemPrompt\nFokus ekstraksi tanggal/waktu/acara dari isi '
+        ? '$_baseSystemPrompt\n(Waktu saat ini: $nowStr)\nFokus ekstraksi tanggal/waktu/acara dari isi '
             'email berikut, abaikan konten promosi/spam.'
-        : _baseSystemPrompt;
+        : '$_baseSystemPrompt\n(Waktu saat ini: $nowStr)';
 
     // 1. Coba on-device dulu (no cost, default)
     try {

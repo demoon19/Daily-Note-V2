@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/chat_assistant/presentation/screens/chat_screen.dart';
@@ -9,9 +10,8 @@ import '../features/reminder/presentation/screens/reminder_screen.dart';
 import '../features/summary/presentation/screens/daily_summary_screen.dart';
 import '../features/summary/presentation/screens/weekly_summary_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
+import '../core/widgets/main_layout.dart';
 
-/// Semua path terpusat di sini. Jangan buat Navigator.push manual
-/// dengan MaterialPageRoute di dalam fitur — selalu lewat go_router.
 class AppRoutes {
   AppRoutes._();
 
@@ -27,32 +27,45 @@ class AppRoutes {
   static const String settings = '/settings';
 }
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter appRouter = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoutes.home,
   routes: [
-    GoRoute(
-      path: AppRoutes.home,
-      builder: (context, state) => const HomeScreen(),
+    ShellRoute(
+      navigatorKey: _shellNavigatorKey,
+      builder: (context, state, child) {
+        return MainLayout(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+        ),
+        GoRoute(
+          path: AppRoutes.chat,
+          pageBuilder: (context, state) => const NoTransitionPage(child: ChatScreen()),
+        ),
+        GoRoute(
+          path: AppRoutes.calendar,
+          pageBuilder: (context, state) => const NoTransitionPage(child: CalendarScreen()),
+        ),
+        GoRoute(
+          path: AppRoutes.todo,
+          pageBuilder: (context, state) => const NoTransitionPage(child: TodoScreen()),
+        ),
+        GoRoute(
+          path: AppRoutes.expense,
+          pageBuilder: (context, state) => const NoTransitionPage(child: ExpenseScreen()),
+        ),
+      ],
     ),
-    GoRoute(
-      path: AppRoutes.chat,
-      builder: (context, state) => const ChatScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.calendar,
-      builder: (context, state) => const CalendarScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.todo,
-      builder: (context, state) => const TodoScreen(),
-    ),
+    // Layar yang tidak menggunakan MainLayout ditaruh di luar ShellRoute (misal full screen)
     GoRoute(
       path: AppRoutes.notes,
       builder: (context, state) => const NotesScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.expense,
-      builder: (context, state) => const ExpenseScreen(),
     ),
     GoRoute(
       path: AppRoutes.reminder,

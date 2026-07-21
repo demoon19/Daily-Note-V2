@@ -12,7 +12,7 @@ class ReminderScreen extends ConsumerWidget {
     final remindersAsync = ref.watch(reminderListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reminder', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('Reminder', style: AppTextStyles.heading3)),
       body: remindersAsync.when(
         data: (reminders) => reminders.isEmpty
             ? const Center(child: Text('Belum ada reminder.'))

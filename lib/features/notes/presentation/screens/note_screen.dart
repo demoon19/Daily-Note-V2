@@ -13,7 +13,7 @@ class NotesScreen extends ConsumerWidget {
     final notesAsync = ref.watch(notesListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Catatan', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('Catatan', style: AppTextStyles.heading3)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddNoteDialog(context, ref),
         child: const Icon(Icons.add),

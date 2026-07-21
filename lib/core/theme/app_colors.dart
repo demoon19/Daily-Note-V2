@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 
-/// Semua warna dipakai lintas fitur — jangan hardcode Color(...)
-/// langsung di widget fitur, selalu rujuk ke sini.
 class AppColors {
   AppColors._();
 
-  // Base (dark theme sebagai default)
-  static const Color background = Color(0xFF121212);
-  static const Color surface = Color(0xFF1E1E1E);
-  static const Color surfaceVariant = Color(0xFF2A2A2A);
+  static const Color background = Color(0xFF0A0F1C);
+  static const Color surface = Color(0xFF121A2B);
+  static const Color surfaceVariant = Color(0xFF1A2438);
+  static const Color surface3 = Color(0xFF232F47);
+  static const Color line = Color(0xFF263252);
 
-  // Brand
-  static const Color primary = Color(0xFF6C5CE7);
-  static const Color secondary = Color(0xFF00CEC9);
+  static const Color teal = Color(0xFF2DD4BF);
+  static const Color cyan = Color(0xFF38BDF8);
+  static const Color violet = Color(0xFFA78BFA);
+  static const Color amber = Color(0xFFFBBF24);
+  static const Color rose = Color(0xFFFB7185);
 
-  // Text
-  static const Color textPrimary = Color(0xFFF5F5F5);
-  static const Color textSecondary = Color(0xFFB0B0B0);
-  static const Color textDisabled = Color(0xFF6B6B6B);
+  static const Color textPrimary = Color(0xFFE8EDF7);
+  static const Color textSecondary = Color(0xFF9AA6C0);
+  static const Color textDisabled = Color(0xFF5C6889);
 
-  // Semantic
-  static const Color success = Color(0xFF2ECC71);
-  static const Color warning = Color(0xFFF1C40F);
-  static const Color error = Color(0xFFE74C3C);
+  static const Color primary = teal;
+  static const Color secondary = cyan;
+  static const Color success = teal;
+  static const Color warning = amber;
+  static const Color error = rose;
+  
+  static const Color border = line;
+  static const Color divider = line;
 
-  // Per-fitur accent (opsional, dipakai untuk badge/kategori)
-  static const Color calendarAccent = Color(0xFF6C5CE7);
-  static const Color todoAccent = Color(0xFF00B894);
-  static const Color notesAccent = Color(0xFFFDCB6E);
-  static const Color expenseAccent = Color(0xFFE17055);
-  static const Color reminderAccent = Color(0xFF0984E3);
-
-  static const Color border = Color(0xFF333333);
-  static const Color divider = Color(0xFF2A2A2A);
+  static const Color calendarAccent = cyan;
+  static const Color todoAccent = teal;
+  static const Color notesAccent = violet;
+  static const Color expenseAccent = rose;
+  static const Color reminderAccent = amber;
 }

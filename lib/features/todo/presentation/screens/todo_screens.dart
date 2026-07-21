@@ -16,7 +16,11 @@ class TodoScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-          title: const Text('To-do List', style: AppTextStyles.heading3)),
+          title: Text('To-do List', style: AppTextStyles.heading3)),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddTodoDialog(context, ref),
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           Padding(
@@ -26,7 +30,7 @@ class TodoScreen extends ConsumerWidget {
                 Expanded(
                   child: AppTextField(
                     controller: controller,
-                    hintText: 'Tambah tugas baru...',
+                    hintText: 'Tambah tugas baru (cepat)...',
                     onSubmitted: () {
                       if (controller.text.trim().isEmpty) return;
                       ref.read(todoActionsProvider.notifier).addTodo(
@@ -67,6 +71,74 @@ class TodoScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddTodoDialog(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController();
+    DateTime? selectedDate;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Tugas Baru'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(hintText: 'Judul tugas'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(selectedDate == null 
+                        ? 'Tanpa Tenggat Waktu' 
+                        : 'Tenggat: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'),
+                      TextButton(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (date != null) {
+                            setState(() {
+                              selectedDate = date;
+                            });
+                          }
+                        },
+                        child: const Text('Set'),
+                      )
+                    ],
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+                TextButton(
+                  onPressed: () {
+                    if (titleController.text.trim().isEmpty) return;
+                    ref.read(todoActionsProvider.notifier).addTodo(
+                          TodoEntity(
+                            title: titleController.text.trim(),
+                            dueDate: selectedDate,
+                          ),
+                        );
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

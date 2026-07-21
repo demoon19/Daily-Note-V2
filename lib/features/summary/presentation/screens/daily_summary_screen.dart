@@ -16,7 +16,7 @@ class DailySummaryScreen extends ConsumerWidget {
     final selectedDate = ref.watch(selectedSummaryDateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ringkasan Harian', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('Ringkasan Harian', style: AppTextStyles.heading3)),
       body: Column(
         children: [
           Padding(

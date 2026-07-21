@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Pengaturan', style: AppTextStyles.heading3)),
+          title: Text('Pengaturan', style: AppTextStyles.heading3)),
       body: settingsAsync.when(
         data: (settings) => ListView(
           children: [
@@ -36,23 +36,6 @@ class SettingsScreen extends ConsumerWidget {
               value: settings.isTtsEnabled,
               onChanged: (v) =>
                   ref.read(appSettingsProvider.notifier).toggleTts(v),
-            ),
-            const Divider(),
-            ListTile(
-              title: const Text('Mode LLM'),
-              subtitle: Text(_llmModeLabel(settings.llmMode)),
-              trailing: DropdownButton<LlmMode>(
-                value: settings.llmMode,
-                onChanged: (mode) {
-                  if (mode != null) {
-                    ref.read(appSettingsProvider.notifier).setLlmMode(mode);
-                  }
-                },
-                items: LlmMode.values
-                    .map((m) => DropdownMenuItem(
-                        value: m, child: Text(_llmModeLabel(m))))
-                    .toList(),
-              ),
             ),
             const Divider(),
             SwitchListTile(

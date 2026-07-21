@@ -27,6 +27,7 @@ class SpeechToTextService {
     }
     await _speech.listen(
       onResult: (result) => onResult(result.recognizedWords),
+      localeId: 'id_ID', // Memastikan pengenalan suara berbahasa Indonesia
     );
   }
 

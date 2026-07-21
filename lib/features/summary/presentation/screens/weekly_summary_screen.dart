@@ -15,7 +15,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
     final summaryAsync = ref.watch(weeklySummaryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ringkasan Mingguan', style: AppTextStyles.heading3)),
+      appBar: AppBar(title: Text('Ringkasan Mingguan', style: AppTextStyles.heading3)),
       body: summaryAsync.when(
         data: (summary) => ListView(
           padding: const EdgeInsets.all(16),
@@ -55,18 +55,28 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          AppDateUtils.formatDayName(day.date),
-                          style: AppTextStyles.bodyLarge,
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            AppDateUtils.formatDayName(day.date),
+                            style: AppTextStyles.bodyLarge,
+                          ),
                         ),
-                        Text(
-                          '${day.totalEvents} jadwal • ${day.totalTodosCompleted} tugas',
-                          style: AppTextStyles.caption,
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            '${day.totalEvents} jadwal • ${day.totalTodosCompleted} tugas',
+                            style: AppTextStyles.caption,
+                          ),
                         ),
-                        Text(
-                          CurrencyFormatter.format(day.totalExpense),
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.expenseAccent,
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            CurrencyFormatter.format(day.totalExpense),
+                            textAlign: TextAlign.right,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.expenseAccent,
+                            ),
                           ),
                         ),
                       ],
