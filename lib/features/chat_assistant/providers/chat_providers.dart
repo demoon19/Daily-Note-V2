@@ -21,7 +21,16 @@ final chatMessagesProvider =
 
 class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
   final Ref _ref;
-  ChatMessagesNotifier(this._ref) : super([]);
+  ChatMessagesNotifier(this._ref)
+      : super([
+          ChatMessageEntity(
+            id: _uuid.v4(),
+            text:
+                'Halo! Aku asisten cerdasmu. Ada yang bisa aku bantu hari ini? Kamu bisa memintaku untuk mencatat pengeluaran, jadwal, to-do, ataupun sekadar mengobrol!',
+            sender: ChatSender.assistant,
+            timestamp: DateTime.now(),
+          )
+        ]);
 
   /// Alur utama chat: user input -> IntentParserService.parse()
   /// -> IntentRouter.route() -> tampilkan hasil/balasan di chat.

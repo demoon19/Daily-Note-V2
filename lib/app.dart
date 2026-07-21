@@ -12,9 +12,6 @@ class DailyNoteApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(appSettingsProvider);
 
-    // Selama settings masih loading atau error, tetap pakai dark theme
-    // sebagai default (sesuai konsep produk), agar UI tidak "kedip"
-    // atau kosong saat SharedPreferences baru diinisialisasi.
     final isDarkMode = settingsAsync.maybeWhen(
       data: (settings) => settings.isDarkMode,
       orElse: () => true,
