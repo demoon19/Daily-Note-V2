@@ -90,9 +90,16 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
       final hasActionable =
           response.intents.any((i) => i.type != IntentType.chat);
       if (hasActionable) {
-        _replaceLoadingWith(
-          _summarizeActions(response.intents),
-        );
+        _replaceLoadingWith('', intents: response.intents);
+        state = [
+          ...state,
+          ChatMessageEntity(
+            id: _uuid.v4(),
+            text: _summarizeActions(response.intents),
+            sender: ChatSender.assistant,
+            timestamp: DateTime.now(),
+          )
+        ];
       } else {
         // onChatReply sudah mengisi balasan lewat _appendAssistantReply
         _removeLoadingIfStillPresent();
@@ -109,7 +116,7 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
     _replaceLoadingWith(message);
   }
 
-  void _replaceLoadingWith(String message) {
+  void _replaceLoadingWith(String message, {List<IntentResult>? intents}) {
     final index = state.indexWhere((m) => m.isLoading);
     if (index == -1) {
       state = [
@@ -119,12 +126,13 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
           text: message,
           sender: ChatSender.assistant,
           timestamp: DateTime.now(),
+          intents: intents,
         ),
       ];
       return;
     }
     final updated = [...state];
-    updated[index] = updated[index].copyWith(text: message, isLoading: false);
+    updated[index] = updated[index].copyWith(text: message, isLoading: false, intents: intents);
     state = updated;
   }
 
@@ -136,24 +144,17 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
   }
 
   String _summarizeActions(List<IntentResult> intents) {
-    final actionable = intents.where((i) => i.type != IntentType.chat);
-    final labels = actionable.map((i) {
-      switch (i.type) {
-        case IntentType.calendar:
-          return 'menambahkan jadwal "${i.title}"';
-        case IntentType.todo:
-          return 'menambahkan tugas "${i.title}"';
-        case IntentType.note:
-          return 'menyimpan catatan "${i.title}"';
-        case IntentType.expense:
-          return 'mencatat pengeluaran "${i.title}"';
-        case IntentType.reminder:
-          return 'mengatur pengingat "${i.title}"';
-        case IntentType.chat:
-          return '';
-      }
-    }).where((s) => s.isNotEmpty);
-
-    return 'Oke, aku sudah ${labels.join(', ')}.';
+    final actionable = intents.where((i) => i.type != IntentType.chat).toList();
+    final uniqueTypes = actionable.map((i) => i.type.name).toSet().toList();
+    
+    if (uniqueTypes.isEmpty) return 'Selesai diproses.';
+    
+    final formattedTypes = uniqueTypes.map((t) => t[0].toUpperCase() + t.substring(1)).toList();
+    String targetStr = formattedTypes.join(', ');
+    if (formattedTypes.length > 1) {
+      targetStr = '${formattedTypes.sublist(0, formattedTypes.length - 1).join(', ')} dan ${formattedTypes.last}';
+    }
+    
+    return 'Sudah kusimpan ke $targetStr ✅ Ada lagi?';
   }
 }
