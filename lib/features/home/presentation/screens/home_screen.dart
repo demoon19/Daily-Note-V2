@@ -48,7 +48,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final now = DateTime.now();
     final greeting = _getGreeting(now);
     final quote = _getMotivationalQuote(now);
-    final dateStr = '${AppDateUtils.formatDayName(now)}, ${AppDateUtils.formatDate(now)}';
+    final dateStr =
+        '${AppDateUtils.formatDayName(now)}, ${AppDateUtils.formatDate(now)}';
 
     final homeSummaryAsync = ref.watch(homeSummaryProvider);
     final eventsAsync = ref.watch(eventsByDateProvider);
@@ -61,15 +62,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final agendaCount = summary?.totalEventsToday ?? 0;
     final todoCount = summary?.totalPendingTodos ?? 0;
     final expense = summary?.totalExpenseToday ?? 0;
-    
+
     // Sort and filter events (only upcoming today, or just today's events if none upcoming)
     final upcomingEvents = events.where((e) => e.datetime.isAfter(now)).toList()
       ..sort((a, b) => a.datetime.compareTo(b.datetime));
-    
-    final displayEvents = upcomingEvents.isNotEmpty ? upcomingEvents.take(3).toList() : events.take(3).toList();
+
+    final displayEvents = upcomingEvents.isNotEmpty
+        ? upcomingEvents.take(3).toList()
+        : events.take(3).toList();
 
     int weeklyCompleted = weeklySummary?.totalTodosCompleted ?? 0;
-    int weeklyPending = weeklySummary?.dailyBreakdown.fold<int>(0, (sum, d) => sum + (d.totalTodosPending)) ?? 0;
+    int weeklyPending = weeklySummary?.dailyBreakdown
+            .fold<int>(0, (sum, d) => sum + (d.totalTodosPending)) ??
+        0;
     int weeklyTotal = weeklyCompleted + weeklyPending;
     double weeklyPct = weeklyTotal > 0 ? (weeklyCompleted / weeklyTotal) : 0.0;
 
@@ -78,7 +83,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 90),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 90),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -88,7 +94,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   style: AppTextStyles.eyebrow.copyWith(color: AppColors.teal),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.settings_outlined, color: AppColors.teal),
+                  icon: const Icon(Icons.settings_outlined,
+                      color: AppColors.teal),
                   onPressed: () {
                     context.push('/settings');
                   },
@@ -96,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            
+
             // Greeting Card
             Container(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -115,7 +122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$greeting, User 👋', style: AppTextStyles.eyebrow),
+                  Text('$greeting 👋', style: AppTextStyles.eyebrow),
                   const SizedBox(height: 6),
                   Text(
                     quote,
@@ -134,33 +141,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             // Stats
             Row(
               children: [
-                _buildStatChip(agendaCount.toString(), 'Agenda hari ini', AppColors.teal),
+                _buildStatChip(
+                    agendaCount.toString(), 'Agenda hari ini', AppColors.teal),
                 const SizedBox(width: 10),
-                _buildStatChip(todoCount.toString(), 'Todo aktif', AppColors.cyan),
+                _buildStatChip(
+                    todoCount.toString(), 'Todo aktif', AppColors.cyan),
                 const SizedBox(width: 10),
-                _buildStatChip(_formatShortCurrency(expense), 'Pengeluaran', AppColors.rose),
+                _buildStatChip(_formatShortCurrency(expense), 'Pengeluaran',
+                    AppColors.rose),
               ],
             ),
             const SizedBox(height: 16),
 
             // Agenda
-            Text('AGENDA BERIKUTNYA', style: AppTextStyles.eyebrow.copyWith(color: AppColors.textDisabled)),
+            Text('AGENDA BERIKUTNYA',
+                style: AppTextStyles.eyebrow
+                    .copyWith(color: AppColors.textDisabled)),
             const SizedBox(height: 9),
             if (displayEvents.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 16.0),
-                child: Text('Tidak ada agenda hari ini.', style: TextStyle(color: AppColors.textDisabled, fontSize: 13)),
+                child: Text('Tidak ada agenda hari ini.',
+                    style:
+                        TextStyle(color: AppColors.textDisabled, fontSize: 13)),
               )
             else
               ...displayEvents.map((e) => _buildAgendaItem(
-                AppDateUtils.formatTime(e.datetime),
-                e.title,
-                e.location ?? e.notes ?? '',
-                AppColors.teal,
-              )),
-            
+                    AppDateUtils.formatTime(e.datetime),
+                    e.title,
+                    e.location ?? e.notes ?? '',
+                    AppColors.teal,
+                  )),
+
             const SizedBox(height: 16),
-            Text('RINGKASAN MINGGUAN', style: AppTextStyles.eyebrow.copyWith(color: AppColors.textDisabled)),
+            Text('RINGKASAN MINGGUAN',
+                style: AppTextStyles.eyebrow
+                    .copyWith(color: AppColors.textDisabled)),
             const SizedBox(height: 9),
             Container(
               padding: const EdgeInsets.all(12),
@@ -172,7 +188,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$weeklyCompleted tugas selesai · $weeklyPending rencana meleset', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  Text(
+                      '$weeklyCompleted tugas selesai · $weeklyPending rencana meleset',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -198,7 +217,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Text('${(weeklyPct * 100).toInt()}%', style: AppTextStyles.caption.copyWith(fontFamily: AppTextStyles.fontMono.fontFamily)),
+                      Text('${(weeklyPct * 100).toInt()}%',
+                          style: AppTextStyles.caption.copyWith(
+                              fontFamily: AppTextStyles.fontMono.fontFamily)),
                     ],
                   )
                 ],
@@ -233,17 +254,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Text(
               numText,
-              style: AppTextStyles.heading2.copyWith(color: color, fontWeight: FontWeight.bold),
+              style: AppTextStyles.heading2
+                  .copyWith(color: color, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textDisabled)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 10, color: AppColors.textDisabled)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAgendaItem(String time, String title, String sub, Color dotColor) {
+  Widget _buildAgendaItem(
+      String time, String title, String sub, Color dotColor) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
@@ -278,9 +303,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w500)),
                 if (sub.isNotEmpty)
-                  Text(sub, style: const TextStyle(fontSize: 10.5, color: AppColors.textDisabled)),
+                  Text(sub,
+                      style: const TextStyle(
+                          fontSize: 10.5, color: AppColors.textDisabled)),
               ],
             ),
           ),
