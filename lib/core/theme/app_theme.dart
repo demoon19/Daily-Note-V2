@@ -65,5 +65,73 @@ class AppTheme {
     );
   }
 
-  static ThemeData get lightTheme => darkTheme; // Force dark theme layout per mockup
+  static ThemeData get lightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+      primaryColor: AppColors.primary,
+      fontFamily: GoogleFonts.inter().fontFamily,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: Colors.white,
+        error: AppColors.error,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFFF8FAFC),
+        elevation: 0,
+        titleTextStyle: AppTextStyles.heading2.copyWith(color: const Color(0xFF0F172A)),
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+      ),
+      textTheme: TextTheme(
+        displayLarge: AppTextStyles.heading1.copyWith(color: const Color(0xFF0F172A)),
+        displayMedium: AppTextStyles.heading2.copyWith(color: const Color(0xFF0F172A)),
+        displaySmall: AppTextStyles.heading3.copyWith(color: const Color(0xFF0F172A)),
+        bodyLarge: AppTextStyles.bodyLarge.copyWith(color: const Color(0xFF0F172A)),
+        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: const Color(0xFF334155)),
+        labelSmall: AppTextStyles.caption.copyWith(color: const Color(0xFF64748B)),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          textStyle: AppTextStyles.button,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFFF1F5F9),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: AppTextStyles.bodyMedium.copyWith(color: const Color(0xFF94A3B8)),
+      ),
+      dividerColor: const Color(0xFFE2E8F0),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith((states) =>
+            states.contains(MaterialState.selected) ? AppColors.primary : Colors.grey),
+        trackColor: MaterialStateProperty.resolveWith((states) =>
+            states.contains(MaterialState.selected) ? AppColors.primary.withOpacity(0.5) : Colors.grey.shade300),
+      ),
+      listTileTheme: ListTileThemeData(
+        textColor: const Color(0xFF0F172A),
+        iconColor: const Color(0xFF0F172A),
+      ),
+    );
+  }
 }

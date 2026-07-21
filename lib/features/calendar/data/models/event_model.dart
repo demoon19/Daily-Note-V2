@@ -11,6 +11,7 @@ class EventModel {
   final DateTime datetime;
   final String? location;
   final String? notes;
+  final String? recurrence;
 
   const EventModel({
     this.id,
@@ -18,6 +19,7 @@ class EventModel {
     required this.datetime,
     this.location,
     this.notes,
+    this.recurrence,
   });
 
   /// Konversi dari row Drift hasil query.
@@ -28,6 +30,7 @@ class EventModel {
       datetime: row.datetime,
       location: row.location,
       notes: row.notes,
+      recurrence: row.recurrence,
     );
   }
 
@@ -38,6 +41,7 @@ class EventModel {
       datetime: datetime,
       location: drift.Value(location),
       notes: drift.Value(notes),
+      recurrence: drift.Value(recurrence),
     );
   }
 
@@ -50,6 +54,7 @@ class EventModel {
       datetime: datetime,
       location: location,
       notes: notes,
+      recurrence: recurrence,
     );
   }
 
@@ -62,6 +67,7 @@ class EventModel {
       datetime: entity.datetime,
       location: entity.location,
       notes: entity.notes,
+      recurrence: entity.recurrence,
     );
   }
 
@@ -73,6 +79,7 @@ class EventModel {
         'datetime': datetime.toIso8601String(),
         'location': location,
         'notes': notes,
+        'recurrence': recurrence,
       };
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -82,6 +89,7 @@ class EventModel {
       datetime: DateTime.parse(json['datetime'] as String),
       location: json['location'] as String?,
       notes: json['notes'] as String?,
+      recurrence: json['recurrence'] as String?,
     );
   }
 }

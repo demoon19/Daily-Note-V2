@@ -5,6 +5,7 @@ class AppSettingsEntity {
   final bool isVoiceEnabled;
   final bool isTtsEnabled;
   final bool isEmailIntegrationEnabled;
+  final bool isNotificationEnabled;
   final LlmMode llmMode;
   final int defaultReminderOffsetMinutes;
 
@@ -13,6 +14,7 @@ class AppSettingsEntity {
     this.isVoiceEnabled = true,
     this.isTtsEnabled = false,
     this.isEmailIntegrationEnabled = false,
+    this.isNotificationEnabled = true,
     this.llmMode = LlmMode.hybrid,
     this.defaultReminderOffsetMinutes = 30,
   });
@@ -22,6 +24,7 @@ class AppSettingsEntity {
     bool? isVoiceEnabled,
     bool? isTtsEnabled,
     bool? isEmailIntegrationEnabled,
+    bool? isNotificationEnabled,
     LlmMode? llmMode,
     int? defaultReminderOffsetMinutes,
   }) {
@@ -31,6 +34,7 @@ class AppSettingsEntity {
       isTtsEnabled: isTtsEnabled ?? this.isTtsEnabled,
       isEmailIntegrationEnabled:
           isEmailIntegrationEnabled ?? this.isEmailIntegrationEnabled,
+      isNotificationEnabled: isNotificationEnabled ?? this.isNotificationEnabled,
       llmMode: llmMode ?? this.llmMode,
       defaultReminderOffsetMinutes:
           defaultReminderOffsetMinutes ?? this.defaultReminderOffsetMinutes,

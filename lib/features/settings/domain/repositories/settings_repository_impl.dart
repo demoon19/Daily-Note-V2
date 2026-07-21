@@ -10,6 +10,7 @@ class SettingsRepositoryImpl implements ISettingsRepository {
   static const _keyVoiceEnabled = 'settings_voice_enabled';
   static const _keyTtsEnabled = 'settings_tts_enabled';
   static const _keyEmailIntegration = 'settings_email_integration';
+  static const _keyNotificationEnabled = 'settings_notification_enabled';
   static const _keyLlmMode = 'settings_llm_mode';
   static const _keyReminderOffset = 'settings_reminder_offset';
 
@@ -21,6 +22,7 @@ class SettingsRepositoryImpl implements ISettingsRepository {
       isVoiceEnabled: prefs.getBool(_keyVoiceEnabled) ?? true,
       isTtsEnabled: prefs.getBool(_keyTtsEnabled) ?? false,
       isEmailIntegrationEnabled: prefs.getBool(_keyEmailIntegration) ?? false,
+      isNotificationEnabled: prefs.getBool(_keyNotificationEnabled) ?? true,
       llmMode: LlmMode.values.firstWhere(
         (e) => e.name == (prefs.getString(_keyLlmMode) ?? LlmMode.hybrid.name),
         orElse: () => LlmMode.hybrid,
@@ -36,6 +38,7 @@ class SettingsRepositoryImpl implements ISettingsRepository {
     await prefs.setBool(_keyVoiceEnabled, settings.isVoiceEnabled);
     await prefs.setBool(_keyTtsEnabled, settings.isTtsEnabled);
     await prefs.setBool(_keyEmailIntegration, settings.isEmailIntegrationEnabled);
+    await prefs.setBool(_keyNotificationEnabled, settings.isNotificationEnabled);
     await prefs.setString(_keyLlmMode, settings.llmMode.name);
     await prefs.setInt(_keyReminderOffset, settings.defaultReminderOffsetMinutes);
   }

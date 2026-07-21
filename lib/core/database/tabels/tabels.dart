@@ -6,6 +6,7 @@ class CalendarEvents extends Table {
   DateTimeColumn get datetime => dateTime()();
   TextColumn get location => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get recurrence => text().nullable()(); // 'daily', 'monthly', 'yearly'
 }
 
 class Todos extends Table {

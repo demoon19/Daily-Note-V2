@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/todo_entity.dart';
 import '../../domain/repositories/todo_repository.dart';
+import '../../../../core/notification/remindere_notification_service.dart';
 import '../../../../core/ai/intent_router.dart' show TodoRepository;
 import '../../../../core/ai/intent_models.dart';
 
@@ -36,6 +37,12 @@ class TodoRepositoryImpl implements ITodoRepository, TodoRepository {
             dueDate: Value(todo.dueDate),
           ),
         );
+        
+    await ReminderNotificationService().showInstantNotification(
+      id: DateTime.now().millisecondsSinceEpoch % 100000,
+      title: 'Tugas Ditambahkan',
+      body: todo.title,
+    );
   }
 
   @override

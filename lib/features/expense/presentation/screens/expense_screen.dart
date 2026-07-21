@@ -106,7 +106,13 @@ class ExpenseScreen extends ConsumerWidget {
                       category: categoryController.text.trim().isEmpty ? null : categoryController.text.trim(),
                       datetime: DateTime.now(),
                     ),
+                  ).then((_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pengeluaran berhasil dicatat!')),
                   );
+                }
+              });
               Navigator.pop(ctx);
             },
             child: const Text('Simpan'),

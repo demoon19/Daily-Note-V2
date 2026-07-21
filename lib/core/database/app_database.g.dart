@@ -40,8 +40,15 @@ class $CalendarEventsTable extends CalendarEvents
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _recurrenceMeta =
+      const VerificationMeta('recurrence');
   @override
-  List<GeneratedColumn> get $columns => [id, title, datetime, location, notes];
+  late final GeneratedColumn<String> recurrence = GeneratedColumn<String>(
+      'recurrence', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, datetime, location, notes, recurrence];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -75,6 +82,12 @@ class $CalendarEventsTable extends CalendarEvents
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('recurrence')) {
+      context.handle(
+          _recurrenceMeta,
+          recurrence.isAcceptableOrUnknown(
+              data['recurrence']!, _recurrenceMeta));
+    }
     return context;
   }
 
@@ -94,6 +107,8 @@ class $CalendarEventsTable extends CalendarEvents
           .read(DriftSqlType.string, data['${effectivePrefix}location']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      recurrence: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}recurrence']),
     );
   }
 
@@ -109,12 +124,14 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
   final DateTime datetime;
   final String? location;
   final String? notes;
+  final String? recurrence;
   const CalendarEvent(
       {required this.id,
       required this.title,
       required this.datetime,
       this.location,
-      this.notes});
+      this.notes,
+      this.recurrence});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -126,6 +143,9 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || recurrence != null) {
+      map['recurrence'] = Variable<String>(recurrence);
     }
     return map;
   }
@@ -140,6 +160,9 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
           : Value(location),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      recurrence: recurrence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recurrence),
     );
   }
 
@@ -152,6 +175,7 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
       datetime: serializer.fromJson<DateTime>(json['datetime']),
       location: serializer.fromJson<String?>(json['location']),
       notes: serializer.fromJson<String?>(json['notes']),
+      recurrence: serializer.fromJson<String?>(json['recurrence']),
     );
   }
   @override
@@ -163,6 +187,7 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
       'datetime': serializer.toJson<DateTime>(datetime),
       'location': serializer.toJson<String?>(location),
       'notes': serializer.toJson<String?>(notes),
+      'recurrence': serializer.toJson<String?>(recurrence),
     };
   }
 
@@ -171,13 +196,15 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
           String? title,
           DateTime? datetime,
           Value<String?> location = const Value.absent(),
-          Value<String?> notes = const Value.absent()}) =>
+          Value<String?> notes = const Value.absent(),
+          Value<String?> recurrence = const Value.absent()}) =>
       CalendarEvent(
         id: id ?? this.id,
         title: title ?? this.title,
         datetime: datetime ?? this.datetime,
         location: location.present ? location.value : this.location,
         notes: notes.present ? notes.value : this.notes,
+        recurrence: recurrence.present ? recurrence.value : this.recurrence,
       );
   CalendarEvent copyWithCompanion(CalendarEventsCompanion data) {
     return CalendarEvent(
@@ -186,6 +213,8 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
       datetime: data.datetime.present ? data.datetime.value : this.datetime,
       location: data.location.present ? data.location.value : this.location,
       notes: data.notes.present ? data.notes.value : this.notes,
+      recurrence:
+          data.recurrence.present ? data.recurrence.value : this.recurrence,
     );
   }
 
@@ -196,13 +225,15 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
           ..write('title: $title, ')
           ..write('datetime: $datetime, ')
           ..write('location: $location, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('recurrence: $recurrence')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, datetime, location, notes);
+  int get hashCode =>
+      Object.hash(id, title, datetime, location, notes, recurrence);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -211,7 +242,8 @@ class CalendarEvent extends DataClass implements Insertable<CalendarEvent> {
           other.title == this.title &&
           other.datetime == this.datetime &&
           other.location == this.location &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.recurrence == this.recurrence);
 }
 
 class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
@@ -220,12 +252,14 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
   final Value<DateTime> datetime;
   final Value<String?> location;
   final Value<String?> notes;
+  final Value<String?> recurrence;
   const CalendarEventsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.datetime = const Value.absent(),
     this.location = const Value.absent(),
     this.notes = const Value.absent(),
+    this.recurrence = const Value.absent(),
   });
   CalendarEventsCompanion.insert({
     this.id = const Value.absent(),
@@ -233,6 +267,7 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
     required DateTime datetime,
     this.location = const Value.absent(),
     this.notes = const Value.absent(),
+    this.recurrence = const Value.absent(),
   })  : title = Value(title),
         datetime = Value(datetime);
   static Insertable<CalendarEvent> custom({
@@ -241,6 +276,7 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
     Expression<DateTime>? datetime,
     Expression<String>? location,
     Expression<String>? notes,
+    Expression<String>? recurrence,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -248,6 +284,7 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
       if (datetime != null) 'datetime': datetime,
       if (location != null) 'location': location,
       if (notes != null) 'notes': notes,
+      if (recurrence != null) 'recurrence': recurrence,
     });
   }
 
@@ -256,13 +293,15 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
       Value<String>? title,
       Value<DateTime>? datetime,
       Value<String?>? location,
-      Value<String?>? notes}) {
+      Value<String?>? notes,
+      Value<String?>? recurrence}) {
     return CalendarEventsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       datetime: datetime ?? this.datetime,
       location: location ?? this.location,
       notes: notes ?? this.notes,
+      recurrence: recurrence ?? this.recurrence,
     );
   }
 
@@ -284,6 +323,9 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (recurrence.present) {
+      map['recurrence'] = Variable<String>(recurrence.value);
+    }
     return map;
   }
 
@@ -294,7 +336,8 @@ class CalendarEventsCompanion extends UpdateCompanion<CalendarEvent> {
           ..write('title: $title, ')
           ..write('datetime: $datetime, ')
           ..write('location: $location, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('recurrence: $recurrence')
           ..write(')'))
         .toString();
   }
@@ -1404,6 +1447,7 @@ typedef $$CalendarEventsTableCreateCompanionBuilder = CalendarEventsCompanion
   required DateTime datetime,
   Value<String?> location,
   Value<String?> notes,
+  Value<String?> recurrence,
 });
 typedef $$CalendarEventsTableUpdateCompanionBuilder = CalendarEventsCompanion
     Function({
@@ -1412,6 +1456,7 @@ typedef $$CalendarEventsTableUpdateCompanionBuilder = CalendarEventsCompanion
   Value<DateTime> datetime,
   Value<String?> location,
   Value<String?> notes,
+  Value<String?> recurrence,
 });
 
 class $$CalendarEventsTableFilterComposer
@@ -1437,6 +1482,9 @@ class $$CalendarEventsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get recurrence => $composableBuilder(
+      column: $table.recurrence, builder: (column) => ColumnFilters(column));
 }
 
 class $$CalendarEventsTableOrderingComposer
@@ -1462,6 +1510,9 @@ class $$CalendarEventsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get recurrence => $composableBuilder(
+      column: $table.recurrence, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CalendarEventsTableAnnotationComposer
@@ -1487,6 +1538,9 @@ class $$CalendarEventsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get recurrence => $composableBuilder(
+      column: $table.recurrence, builder: (column) => column);
 }
 
 class $$CalendarEventsTableTableManager extends RootTableManager<
@@ -1521,6 +1575,7 @@ class $$CalendarEventsTableTableManager extends RootTableManager<
             Value<DateTime> datetime = const Value.absent(),
             Value<String?> location = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> recurrence = const Value.absent(),
           }) =>
               CalendarEventsCompanion(
             id: id,
@@ -1528,6 +1583,7 @@ class $$CalendarEventsTableTableManager extends RootTableManager<
             datetime: datetime,
             location: location,
             notes: notes,
+            recurrence: recurrence,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -1535,6 +1591,7 @@ class $$CalendarEventsTableTableManager extends RootTableManager<
             required DateTime datetime,
             Value<String?> location = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> recurrence = const Value.absent(),
           }) =>
               CalendarEventsCompanion.insert(
             id: id,
@@ -1542,6 +1599,7 @@ class $$CalendarEventsTableTableManager extends RootTableManager<
             datetime: datetime,
             location: location,
             notes: notes,
+            recurrence: recurrence,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

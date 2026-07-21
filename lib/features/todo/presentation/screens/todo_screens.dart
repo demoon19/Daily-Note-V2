@@ -35,7 +35,13 @@ class TodoScreen extends ConsumerWidget {
                       if (controller.text.trim().isEmpty) return;
                       ref.read(todoActionsProvider.notifier).addTodo(
                             TodoEntity(title: controller.text.trim()),
+                          ).then((_) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tugas berhasil ditambahkan!')),
                           );
+                        }
+                      });
                       controller.clear();
                     },
                   ),
@@ -129,7 +135,13 @@ class TodoScreen extends ConsumerWidget {
                             title: titleController.text.trim(),
                             dueDate: selectedDate,
                           ),
+                        ).then((_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tugas berhasil ditambahkan!')),
                         );
+                      }
+                    });
                     Navigator.pop(ctx);
                   },
                   child: const Text('Simpan'),

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/notification/remindere_notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../domain/entities/reminder_entity.dart';
 import '../../domain/repositories/reminder_repository.dart';
@@ -43,13 +44,19 @@ class ReminderRepositoryImpl implements IReminderRepository, ReminderService {
             linkedEventId: Value(reminder.linkedEventId),
           ),
         );
-    await _notificationService.scheduleReminder(
-      id: id,
-      title: reminder.title,
-      body: 'Pengingat: ${reminder.title}',
-      scheduledTime: reminder.triggerAt,
-      linkedEventId: reminder.linkedEventId,
-    );
+        
+    final prefs = await SharedPreferences.getInstance();
+    final isNotificationEnabled = prefs.getBool('settings_notification_enabled') ?? true;
+
+    if (isNotificationEnabled) {
+      await _notificationService.scheduleReminder(
+        id: id,
+        title: reminder.title,
+        body: 'Pengingat: ${reminder.title}',
+        scheduledTime: reminder.triggerAt,
+        linkedEventId: reminder.linkedEventId,
+      );
+    }
   }
 
   @override

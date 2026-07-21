@@ -4,6 +4,7 @@ class EventEntity {
   final DateTime datetime;
   final String? location;
   final String? notes;
+  final String? recurrence;
 
   const EventEntity({
     this.id,
@@ -11,5 +12,6 @@ class EventEntity {
     required this.datetime,
     this.location,
     this.notes,
+    this.recurrence,
   });
 }

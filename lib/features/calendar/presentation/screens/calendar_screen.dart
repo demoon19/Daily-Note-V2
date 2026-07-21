@@ -75,6 +75,7 @@ class CalendarScreen extends ConsumerWidget {
                         onDelete: () => ref
                             .read(calendarActionsProvider.notifier)
                             .deleteEvent(events[index].id!),
+                        onEdit: () => _showEditEventDialog(context, ref, events[index]),
                       ),
                     ),
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -89,6 +90,7 @@ class CalendarScreen extends ConsumerWidget {
   void _showAddEventDialog(BuildContext context, WidgetRef ref, DateTime initialDate) {
     final titleController = TextEditingController();
     DateTime selectedDateTime = initialDate;
+    String? recurrenceValue;
 
     showDialog(
       context: context,
@@ -136,7 +138,23 @@ class CalendarScreen extends ConsumerWidget {
                         child: const Text('Ubah'),
                       )
                     ],
-                  )
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: recurrenceValue,
+                    decoration: const InputDecoration(labelText: 'Perulangan'),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Tidak Berulang')),
+                      DropdownMenuItem(value: 'harian', child: Text('Harian')),
+                      DropdownMenuItem(value: 'bulanan', child: Text('Bulanan')),
+                      DropdownMenuItem(value: 'tahunan', child: Text('Tahunan')),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        recurrenceValue = val;
+                      });
+                    },
+                  ),
                 ],
               ),
               actions: [
@@ -145,8 +163,121 @@ class CalendarScreen extends ConsumerWidget {
                   onPressed: () {
                     if (titleController.text.trim().isEmpty) return;
                     ref.read(calendarActionsProvider.notifier).addEvent(
-                          EventEntity(title: titleController.text.trim(), datetime: selectedDateTime),
+                          EventEntity(
+                            title: titleController.text.trim(),
+                            datetime: selectedDateTime,
+                            recurrence: recurrenceValue,
+                          ),
+                        ).then((_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Jadwal berhasil ditambahkan!')),
                         );
+                      }
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditEventDialog(BuildContext context, WidgetRef ref, EventEntity event) {
+    final titleController = TextEditingController(text: event.title);
+    DateTime selectedDateTime = event.datetime;
+    String? recurrenceValue = event.recurrence;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Jadwal'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(hintText: 'Judul acara'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      TextButton(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDateTime,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (date != null) {
+                            if (!context.mounted) return;
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                            );
+                            if (time != null) {
+                              setState(() {
+                                selectedDateTime = DateTime(
+                                  date.year, date.month, date.day,
+                                  time.hour, time.minute,
+                                );
+                              });
+                            }
+                          }
+                        },
+                        child: const Text('Ubah'),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: recurrenceValue,
+                    decoration: const InputDecoration(labelText: 'Perulangan'),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Tidak Berulang')),
+                      DropdownMenuItem(value: 'harian', child: Text('Harian')),
+                      DropdownMenuItem(value: 'bulanan', child: Text('Bulanan')),
+                      DropdownMenuItem(value: 'tahunan', child: Text('Tahunan')),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        recurrenceValue = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+                TextButton(
+                  onPressed: () {
+                    if (titleController.text.trim().isEmpty) return;
+                    ref.read(calendarActionsProvider.notifier).updateEvent(
+                          EventEntity(
+                            id: event.id,
+                            title: titleController.text.trim(),
+                            datetime: selectedDateTime,
+                            location: event.location,
+                            notes: event.notes,
+                            recurrence: recurrenceValue,
+                          ),
+                        ).then((_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Jadwal berhasil diperbarui!')),
+                        );
+                      }
+                    });
                     Navigator.pop(ctx);
                   },
                   child: const Text('Simpan'),

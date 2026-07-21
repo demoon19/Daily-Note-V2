@@ -45,11 +45,14 @@ class SummaryRepositoryImpl implements ISummaryRepository {
         AppDateUtils.isSameDay(r.triggerAt, date) &&
         r.triggerAt.isBefore(DateTime.now()));
 
+    final todosToday = todos.where((t) =>
+        t.dueDate != null && AppDateUtils.isSameDay(t.dueDate!, date));
+
     return DailySummaryEntity(
       date: date,
       totalEvents: events.length,
-      totalTodosCompleted: todos.where((t) => t.isDone).length,
-      totalTodosPending: todos.where((t) => !t.isDone).length,
+      totalTodosCompleted: todosToday.where((t) => t.isDone).length,
+      totalTodosPending: todosToday.where((t) => !t.isDone).length,
       totalExpense: expenseTotal,
       totalNotes: notesToday.length,
       totalRemindersTriggered: remindersTriggeredToday.length,

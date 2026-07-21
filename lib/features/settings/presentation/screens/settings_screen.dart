@@ -25,17 +25,13 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (v) =>
                   ref.read(appSettingsProvider.notifier).toggleDarkMode(v),
             ),
+            const Divider(),
             SwitchListTile(
-              title: const Text('Voice Input'),
-              value: settings.isVoiceEnabled,
+              title: const Text('Notifikasi'),
+              subtitle: const Text('Aktifkan pengingat jadwal dan tugas'),
+              value: settings.isNotificationEnabled,
               onChanged: (v) =>
-                  ref.read(appSettingsProvider.notifier).toggleVoice(v),
-            ),
-            SwitchListTile(
-              title: const Text('Text-to-Speech (Greeting/Motivasi)'),
-              value: settings.isTtsEnabled,
-              onChanged: (v) =>
-                  ref.read(appSettingsProvider.notifier).toggleTts(v),
+                  ref.read(appSettingsProvider.notifier).toggleNotification(v),
             ),
             const Divider(),
             SwitchListTile(

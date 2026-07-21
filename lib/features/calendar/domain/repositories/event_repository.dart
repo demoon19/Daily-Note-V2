@@ -5,4 +5,5 @@ abstract class IEventRepository {
   Future<List<EventEntity>> getByDate(DateTime date);
   Future<int> add(EventEntity event);
   Future<void> delete(int id);
+  Future<void> update(EventEntity event);
 }

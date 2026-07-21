@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Reminder terhubung ke Calendar/Todo lewat relasi ID
 /// (linked_intent_ref / linkedEventId), BUKAN duplikasi data.
@@ -16,6 +17,12 @@ class ReminderNotificationService {
       iOS: iosSettings,
     );
     await _plugin.initialize(initSettings);
+
+    final androidImplementation =
+        _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    await androidImplementation?.requestNotificationsPermission();
+    await androidImplementation?.requestExactAlarmsPermission();
   }
 
   Future<void> scheduleReminder({
@@ -51,6 +58,36 @@ class ReminderNotificationService {
 
   Future<void> cancelReminder(int id) async {
     await _plugin.cancel(id);
+  }
+
+  Future<void> cancelAll() async {
+    await _plugin.cancelAll();
+  }
+
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final isNotificationEnabled = prefs.getBool('settings_notification_enabled') ?? true;
+    if (!isNotificationEnabled) return;
+
+    await _plugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'instant_channel',
+          'Info',
+          channelDescription: 'Notifikasi info instan Daily Note',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
   }
 
   dynamic _toTZDateTime(DateTime dateTime) {

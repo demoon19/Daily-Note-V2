@@ -36,6 +36,13 @@ class CalendarActionsNotifier extends StateNotifier<AsyncValue<void>> {
     _ref.invalidate(eventListProvider);
     _ref.invalidate(eventsByDateProvider);
   }
+
+  Future<void> updateEvent(EventEntity event) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _repository.update(event));
+    _ref.invalidate(eventListProvider);
+    _ref.invalidate(eventsByDateProvider);
+  }
 }
 
 final calendarActionsProvider = StateNotifierProvider<CalendarActionsNotifier, AsyncValue<void>>((ref) {

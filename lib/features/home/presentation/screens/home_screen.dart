@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -17,9 +18,36 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  String _getGreeting(DateTime time) {
+    final hour = time.hour;
+    if (hour < 11) return 'Selamat pagi';
+    if (hour < 15) return 'Selamat siang';
+    if (hour < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  String _getMotivationalQuote(DateTime date) {
+    const quotes = [
+      '"Progres kecil hari ini, hasil besar minggu ini."',
+      '"Satu langkah kecil lebih baik daripada tidak sama sekali."',
+      '"Fokus pada produktivitas, bukan kesibukan."',
+      '"Jangan tunggu sempurna untuk mulai sesuatu."',
+      '"Waktu adalah modal terbesarmu, manfaatkanlah."',
+      '"Lakukan sekarang, atau menyesal nanti."',
+      '"Setiap tantangan adalah peluang untuk tumbuh."',
+      '"Tetap semangat! Hari ini adalah kanvas kosongmu."',
+      '"Bukan tentang siapa yang tercepat, tapi siapa yang konsisten."',
+    ];
+    final seed = date.year * 10000 + date.month * 100 + date.day;
+    final random = Random(seed);
+    return quotes[random.nextInt(quotes.length)];
+  }
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final greeting = _getGreeting(now);
+    final quote = _getMotivationalQuote(now);
     final dateStr = '${AppDateUtils.formatDayName(now)}, ${AppDateUtils.formatDate(now)}';
 
     final homeSummaryAsync = ref.watch(homeSummaryProvider);
@@ -87,10 +115,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Selamat pagi, User 👋', style: AppTextStyles.eyebrow),
+                  Text('$greeting, User 👋', style: AppTextStyles.eyebrow),
                   const SizedBox(height: 6),
                   Text(
-                    '"Progres kecil hari ini, hasil besar minggu ini."',
+                    quote,
                     style: AppTextStyles.heading3,
                   ),
                   const SizedBox(height: 6),

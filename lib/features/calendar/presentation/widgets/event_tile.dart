@@ -8,8 +8,9 @@ import '../../domain/entities/event_entity.dart';
 class EventTile extends StatelessWidget {
   final EventEntity event;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
-  const EventTile({super.key, required this.event, this.onDelete});
+  const EventTile({super.key, required this.event, this.onDelete, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +42,8 @@ class EventTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (onEdit != null)
+              IconButton(icon: const Icon(Icons.edit, size: 18), onPressed: onEdit),
             if (onDelete != null)
               IconButton(icon: const Icon(Icons.close, size: 18), onPressed: onDelete),
           ],
