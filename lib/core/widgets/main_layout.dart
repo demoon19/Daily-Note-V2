@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../../features/chat_assistant/providers/chat_providers.dart';
+import '../email/providers/email_providers.dart';
 import '../../features/chat_assistant/presentation/screens/chat_screen.dart' show isListeningProvider, speechToTextServiceProvider;
 
 class MainLayout extends ConsumerStatefulWidget {
@@ -78,6 +79,9 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    // Pastikan gmail auth dan polling tetap hidup selama aplikasi berjalan
+    ref.watch(gmailAuthStatusProvider);
+    
     final isListening = ref.watch(isListeningProvider);
     final selectedIndex = _getSelectedIndex(context);
 

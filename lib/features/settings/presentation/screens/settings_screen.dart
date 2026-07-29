@@ -59,11 +59,26 @@ class SettingsScreen extends ConsumerWidget {
                     ? 'Akun Gmail terhubung'
                     : 'Belum terhubung ke Gmail'),
                 trailing: isConnected
-                    ? TextButton(
-                        onPressed: () => ref
-                            .read(gmailAuthStatusProvider.notifier)
-                            .disconnect(),
-                        child: const Text('Putuskan'),
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menyinkronkan...')));
+                              final result = await ref.read(gmailAuthStatusProvider.notifier).manualSync();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+                              }
+                            },
+                            child: const Text('Sync', style: TextStyle(color: Colors.blue)),
+                          ),
+                          TextButton(
+                            onPressed: () => ref
+                                .read(gmailAuthStatusProvider.notifier)
+                                .disconnect(),
+                            child: const Text('Putuskan', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
                       )
                     : null,
               ),

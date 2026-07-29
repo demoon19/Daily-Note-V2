@@ -56,11 +56,12 @@ class GmailAuthNotifier extends StateNotifier<AsyncValue<bool>> {
     _listenerService.startPolling(
       onNewEmails: (newEmails) async {
         for (final email in newEmails) {
-          final snippet = email['snippet'] ?? '';
+          final subject = email['subject'] ?? '';
+          final bodyText = email['body'] ?? '';
           try {
             final response = await _parser.parseEmail(
-              subject: snippet, 
-              bodySnippet: snippet,
+              subject: subject, 
+              bodySnippet: bodyText,
             );
             await _router.route(response);
           } catch (e) {
@@ -92,5 +93,33 @@ class GmailAuthNotifier extends StateNotifier<AsyncValue<bool>> {
     await _listenerService.signOut();
     _listenerService.stopPolling();
     await _checkStatus();
+  }
+
+  Future<String> manualSync() async {
+    try {
+      final isLogged = await _listenerService.isSignedIn();
+      if (!isLogged) return 'Belum login ke Gmail. Silakan hubungkan ulang.';
+      
+      int count = 0;
+      await _listenerService.fetchNow((newEmails) async {
+        count = newEmails.length;
+        for (final email in newEmails) {
+          final subject = email['subject'] ?? '';
+          final bodyText = email['body'] ?? '';
+          try {
+            final response = await _parser.parseEmail(
+              subject: subject, 
+              bodySnippet: bodyText,
+            );
+            await _router.route(response);
+          } catch (e) {
+            print('Error parsing email: $e');
+          }
+        }
+      });
+      return count > 0 ? 'Berhasil mengekstrak $count email unread!' : 'Tidak ditemukan email unread baru.';
+    } catch (e) {
+      return 'Error sinkronisasi: $e';
+    }
   }
 }

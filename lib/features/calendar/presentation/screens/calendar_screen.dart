@@ -34,16 +34,48 @@ class CalendarScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('JADWAL', style: AppTextStyles.eyebrow.copyWith(letterSpacing: 2)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_getMonthName(selectedDate.month)} ${selectedDate.year}',
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
+                  GestureDetector(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.dark(
+                                primary: AppColors.cyan,
+                                onPrimary: Colors.black,
+                                surface: AppColors.surfaceVariant,
+                                onSurface: Colors.white,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        ref.read(selectedDateProvider.notifier).state = picked;
+                      }
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('JADWAL', style: AppTextStyles.eyebrow.copyWith(letterSpacing: 2)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              '${_getMonthName(selectedDate.month)} ${selectedDate.year}',
+                              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down, color: Colors.white, size: 28),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     onPressed: () {

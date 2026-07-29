@@ -37,6 +37,7 @@ di luar JSON:
 
 - PENTING: Lakukan NORMALISASI pada kalimat input dari user. Jika user menggunakan bahasa gaul, typo, kalimat tidak baku, singkatan, atau kalimat yang sulit dipahami, pahami dan perbaiki maksud aslinya terlebih dahulu sebelum menentukan intent dan mengeksekusi perintahnya (contoh: "bkin jdwal mkan sng jam 1" -> maksud aslinya "Buat jadwal makan siang jam 13:00" -> intent "calendar").
 - JADWAL MASA LALU: Jika event, email, atau acara yang diminta ternyata sudah lewat/terjadi di masa lalu, TETAP masukkan sebagai intent "calendar" untuk keperluan dokumentasi. Jangan abaikan acara yang sudah lewat.
+- RENTANG WAKTU (DATE RANGE): Jika acara memiliki rentang tanggal (misalnya "25 Juli hingga 28 Juli"), set field "datetime" ke TANGGAL MULAI PALING AWAL. Lalu, TULISKAN secara eksplisit keterangan rentang waktu dan jam pelaksanaannya di dalam field "notes" (contoh: "Pelaksanaan: 25 Juli - 28 Juli, mulai hingga selesai").
 - Gunakan zona waktu perangkat untuk field datetime.
 - Jika reminder tidak menyebutkan waktu eksplisit, default
   trigger_offset_minutes = 30.

@@ -10,12 +10,9 @@ class GoogleCalendarService {
   GoogleCalendarService._internal();
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Di Android, clientId tidak perlu diisi secara eksplisit jika menggunakan
-    // kredensial bawaan Play Services (SHA-1). Mengisi clientId dengan Client ID Android
-    // justru memicu DEVELOPER_ERROR (Code 10).
-    // clientId: dotenv.env['GOOGLE_CLIENT_ID'],
     scopes: [
       calendar.CalendarApi.calendarEventsScope,
+      'https://www.googleapis.com/auth/gmail.readonly',
       'email',
     ],
   );
@@ -41,7 +38,15 @@ class GoogleCalendarService {
     
     final client = await _googleSignIn.authenticatedClient();
     if (client == null) {
-      if (interactive) throw Exception("Gagal mendapatkan client OAuth.");
+      if (interactive) {
+        // Jika client null (mungkin karena scope kurang), paksa login ulang
+        await _googleSignIn.disconnect();
+        final account = await _googleSignIn.signIn();
+        if (account == null) throw Exception("Dibatalkan oleh pengguna.");
+        final newClient = await _googleSignIn.authenticatedClient();
+        if (newClient == null) throw Exception("Gagal mendapatkan client OAuth.");
+        return calendar.CalendarApi(newClient);
+      }
       return null;
     }
     return calendar.CalendarApi(client);
