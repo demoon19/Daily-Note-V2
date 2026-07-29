@@ -9,6 +9,7 @@ import '../../providers/home_providers.dart';
 import '../../../calendar/providers/calendar_providers.dart';
 import '../../../summary/providers/summary_providers.dart';
 import 'package:go_router/go_router.dart';
+import '../../../calendar/domain/entities/event_entity.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -166,12 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         TextStyle(color: AppColors.textDisabled, fontSize: 13)),
               )
             else
-              ...displayEvents.map((e) => _buildAgendaItem(
-                    AppDateUtils.formatTime(e.datetime),
-                    e.title,
-                    e.location ?? e.notes ?? '',
-                    AppColors.teal,
-                  )),
+              ...displayEvents.map((e) => _buildAgendaItem(e, AppColors.teal)),
 
             const SizedBox(height: 16),
             Text('RINGKASAN MINGGUAN',
@@ -268,52 +264,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildAgendaItem(
-      String time, String title, String sub, Color dotColor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.line),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 44,
-            child: Text(
-              time,
-              style: TextStyle(
-                fontFamily: AppTextStyles.fontMono.fontFamily,
-                fontSize: 11,
-                color: AppColors.cyan,
+      EventEntity e, Color dotColor) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(selectedDateProvider.notifier).state = e.datetime;
+        context.push('/calendar');
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 44,
+              child: Text(
+                AppDateUtils.formatTime(e.datetime),
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontMono.fontFamily,
+                  fontSize: 11,
+                  color: AppColors.cyan,
+                ),
               ),
             ),
-          ),
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                if (sub.isNotEmpty)
-                  Text(sub,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(e.title,
                       style: const TextStyle(
-                          fontSize: 10.5, color: AppColors.textDisabled)),
-              ],
+                          fontSize: 13, fontWeight: FontWeight.w500)),
+                  if ((e.location ?? '').isNotEmpty)
+                    Text(e.location!,
+                        style: const TextStyle(
+                            fontSize: 10.5, color: AppColors.textDisabled)),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

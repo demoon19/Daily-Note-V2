@@ -8,7 +8,7 @@ class ReminderNotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  Future<void> init() async {
+  Future<void> init({void Function(String?)? onNotificationClick}) async {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings();
@@ -16,7 +16,14 @@ class ReminderNotificationService {
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        if (onNotificationClick != null) {
+          onNotificationClick(response.payload);
+        }
+      },
+    );
 
     final androidImplementation =
         _plugin.resolvePlatformSpecificImplementation<
@@ -68,6 +75,7 @@ class ReminderNotificationService {
     required int id,
     required String title,
     required String body,
+    String? payload,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final isNotificationEnabled = prefs.getBool('settings_notification_enabled') ?? true;
@@ -87,6 +95,7 @@ class ReminderNotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
+      payload: payload,
     );
   }
 

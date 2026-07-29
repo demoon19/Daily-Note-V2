@@ -14,8 +14,20 @@ class EmailToScheduleParser {
   Future<IntentParseResponse> parseEmail({
     required String subject,
     required String bodySnippet,
-  }) {
+  }) async {
     final combinedInput = 'Subjek: $subject\nIsi: $bodySnippet';
-    return _intentParserService.parse(combinedInput, source: 'email');
+    final response = await _intentParserService.parse(combinedInput, source: 'email');
+    
+    // Sisipkan teks asli email ke dalam catatan acara
+    for (int i = 0; i < response.intents.length; i++) {
+      final intent = response.intents[i];
+      if (intent.type == IntentType.calendar || intent.type == IntentType.todo) {
+        final currentNotes = intent.notes ?? '';
+        final appendedNotes = '$currentNotes\n\n--- Isi Email Asli ---\nSubjek: $subject\n\n$bodySnippet'.trim();
+        response.intents[i] = intent.copyWith(notes: appendedNotes);
+      }
+    }
+    
+    return response;
   }
 }

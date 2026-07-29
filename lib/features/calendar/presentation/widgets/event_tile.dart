@@ -9,6 +9,7 @@ class EventTile extends StatelessWidget {
   final bool isFirst;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
+  final VoidCallback? onTap;
 
   const EventTile({
     super.key,
@@ -16,6 +17,7 @@ class EventTile extends StatelessWidget {
     this.isFirst = false,
     this.onDelete,
     this.onEdit,
+    this.onTap,
   });
 
   @override
@@ -65,69 +67,73 @@ class EventTile extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.line.withOpacity(0.8)),
-                ),
-                child: Stack(
-                  children: [
-                    // Left glow/border
-                    Positioned(
-                      left: 0,
-                      top: 10,
-                      bottom: 10,
-                      child: Container(
-                        width: 3,
-                        decoration: BoxDecoration(
-                          color: borderAccent,
-                          borderRadius: const BorderRadius.horizontal(
-                            right: Radius.circular(4),
+              child: GestureDetector(
+                onTap: onTap ?? onEdit,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.line.withOpacity(0.8)),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Left glow/border
+                      Positioned(
+                        left: 0,
+                        top: 10,
+                        bottom: 10,
+                        child: Container(
+                          width: 3,
+                          decoration: BoxDecoration(
+                            color: borderAccent,
+                            borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  event.title,
-                                  style: AppTextStyles.heading3.copyWith(color: Colors.white),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _getSubtitle(),
-                                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textDisabled, fontSize: 11),
-                                ),
-                              ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    event.title,
+                                    style: AppTextStyles.heading3.copyWith(color: Colors.white),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _getSubtitle(),
+                                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textDisabled, fontSize: 11),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          if (onEdit != null)
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textDisabled),
-                              onPressed: onEdit,
-                              constraints: const BoxConstraints(),
-                              padding: EdgeInsets.zero,
-                            ),
-                          if (onEdit != null && onDelete != null) const SizedBox(width: 12),
-                          if (onDelete != null)
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.rose),
-                              onPressed: onDelete,
-                              constraints: const BoxConstraints(),
-                              padding: EdgeInsets.zero,
-                            ),
-                        ],
+                            if (onEdit != null)
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textDisabled),
+                                onPressed: onEdit,
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                              ),
+                            if (onEdit != null && onDelete != null) const SizedBox(width: 12),
+                            if (onDelete != null)
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.rose),
+                                onPressed: onDelete,
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -91,6 +91,7 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
       id: DateTime.now().millisecondsSinceEpoch % 100000,
       title: 'Jadwal Ditambahkan',
       body: event.title,
+      payload: event.datetime.toIso8601String(),
     );
     
     // Auto-sync ke Google Calendar (tidak nge-blok UI karena berjalan asinkron)
@@ -141,11 +142,17 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
       
       if (isAllDay) {
         // Rute ke Todo
-        final existingTodo = await (_db.select(_db.todos)
-          ..where((t) => t.title.equals(gEvent.title) & t.dueDate.equals(gEvent.datetime)))
+        final existingTodos = await (_db.select(_db.todos)
+          ..where((t) => t.title.equals(gEvent.title)))
           .get();
           
-        if (existingTodo.isEmpty) {
+        bool isDuplicate = existingTodos.any((e) {
+          if (e.dueDate == null) return false;
+          final diff = e.dueDate!.difference(gEvent.datetime).inMinutes.abs();
+          return diff < 60;
+        });
+          
+        if (!isDuplicate) {
           await _db.into(_db.todos).insert(
             TodosCompanion.insert(
               title: gEvent.title,
@@ -157,10 +164,15 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
       } else {
         // Rute normal ke Calendar
         final existing = await (_db.select(_db.calendarEvents)
-          ..where((t) => t.title.equals(gEvent.title) & t.datetime.equals(gEvent.datetime)))
+          ..where((t) => t.title.equals(gEvent.title)))
           .get();
           
-        if (existing.isEmpty) {
+        bool isDuplicate = existing.any((e) {
+          final diff = e.datetime.difference(gEvent.datetime).inMinutes.abs();
+          return diff < 60;
+        });
+          
+        if (!isDuplicate) {
           final model = EventModel.fromEntity(gEvent);
           await _db.into(_db.calendarEvents).insert(
             CalendarEventsCompanion.insert(

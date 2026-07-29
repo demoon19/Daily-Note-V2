@@ -178,13 +178,15 @@ class CalendarScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         itemCount: events.length,
                         itemBuilder: (context, index) {
+                          final event = events[index];
                           return EventTile(
-                            event: events[index],
+                            event: event,
                             isFirst: index == 0,
+                            onTap: () => _showEventDetailsDialog(context, event),
                             onDelete: () => ref
                                 .read(calendarActionsProvider.notifier)
-                                .deleteEvent(events[index].id!),
-                            onEdit: () => _showEditEventDialog(context, ref, events[index]),
+                                .deleteEvent(event.id!),
+                            onEdit: () => _showEditEventDialog(context, ref, event),
                           );
                         },
                       ),
@@ -216,8 +218,87 @@ class CalendarScreen extends ConsumerWidget {
     return days[weekday];
   }
 
+  void _showEventDetailsDialog(BuildContext context, EventEntity event) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time, size: 16, color: AppColors.teal),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          AppDateUtils.formatDateTime(event.datetime),
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (event.location != null && event.location!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_outlined, size: 16, color: AppColors.cyan),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            event.location!,
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (event.notes != null && event.notes!.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Divider(color: AppColors.line),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Catatan / Isi Email:',
+                      style: AppTextStyles.eyebrow.copyWith(color: AppColors.textDisabled),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        event.notes!,
+                        style: const TextStyle(fontSize: 13, height: 1.5),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showAddEventDialog(BuildContext context, WidgetRef ref, DateTime initialDate) {
     final titleController = TextEditingController();
+    final notesController = TextEditingController();
     DateTime selectedDateTime = initialDate;
     String? recurrenceValue;
 
@@ -239,7 +320,9 @@ class CalendarScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      Expanded(
+                        child: Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      ),
                       TextButton(
                         onPressed: () async {
                           final date = await showDatePicker(
@@ -284,6 +367,16 @@ class CalendarScreen extends ConsumerWidget {
                       });
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 5,
+                    minLines: 1,
+                    decoration: const InputDecoration(
+                      labelText: 'Catatan / Detail',
+                      hintText: 'Tulis keterangan atau isi email...',
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -295,6 +388,7 @@ class CalendarScreen extends ConsumerWidget {
                           EventEntity(
                             title: titleController.text.trim(),
                             datetime: selectedDateTime,
+                            notes: notesController.text.trim().isNotEmpty ? notesController.text.trim() : null,
                             recurrence: recurrenceValue,
                           ),
                         ).then((_) {
@@ -318,6 +412,7 @@ class CalendarScreen extends ConsumerWidget {
 
   void _showEditEventDialog(BuildContext context, WidgetRef ref, EventEntity event) {
     final titleController = TextEditingController(text: event.title);
+    final notesController = TextEditingController(text: event.notes ?? '');
     DateTime selectedDateTime = event.datetime;
     String? recurrenceValue = event.recurrence;
 
@@ -339,7 +434,9 @@ class CalendarScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      Expanded(
+                        child: Text('Waktu: ${AppDateUtils.formatDateTime(selectedDateTime)}'),
+                      ),
                       TextButton(
                         onPressed: () async {
                           final date = await showDatePicker(
@@ -384,6 +481,16 @@ class CalendarScreen extends ConsumerWidget {
                       });
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 5,
+                    minLines: 1,
+                    decoration: const InputDecoration(
+                      labelText: 'Catatan / Detail',
+                      hintText: 'Tulis keterangan atau isi email...',
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -397,7 +504,7 @@ class CalendarScreen extends ConsumerWidget {
                             title: titleController.text.trim(),
                             datetime: selectedDateTime,
                             location: event.location,
-                            notes: event.notes,
+                            notes: notesController.text.trim().isNotEmpty ? notesController.text.trim() : null,
                             recurrence: recurrenceValue,
                           ),
                         ).then((_) {

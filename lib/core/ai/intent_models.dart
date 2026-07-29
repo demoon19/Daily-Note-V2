@@ -32,6 +32,30 @@ class IntentResult {
     this.linkedIntentRef,
   });
 
+  IntentResult copyWith({
+    IntentType? type,
+    String? title,
+    DateTime? datetime,
+    String? location,
+    String? notes,
+    double? amount,
+    String? category,
+    int? triggerOffsetMinutes,
+    int? linkedIntentRef,
+  }) {
+    return IntentResult(
+      type: type ?? this.type,
+      title: title ?? this.title,
+      datetime: datetime ?? this.datetime,
+      location: location ?? this.location,
+      notes: notes ?? this.notes,
+      amount: amount ?? this.amount,
+      category: category ?? this.category,
+      triggerOffsetMinutes: triggerOffsetMinutes ?? this.triggerOffsetMinutes,
+      linkedIntentRef: linkedIntentRef ?? this.linkedIntentRef,
+    );
+  }
+
   factory IntentResult.fromJson(Map<String, dynamic> json) {
     return IntentResult(
       type: intentTypeFromString(json['type'] as String? ?? 'chat'),
@@ -65,7 +89,7 @@ class IntentResult {
 }
 
 class IntentParseResponse {
-  final List<IntentResult> intents;
+  List<IntentResult> intents;
 
   IntentParseResponse({
     required this.intents,
