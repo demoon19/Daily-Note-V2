@@ -89,6 +89,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.listen(chatMessagesProvider, (_, __) => _scrollToBottom());
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text('AI Assistant', style: AppTextStyles.heading3),
         elevation: 0,
@@ -135,6 +136,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Expanded(
                 child: TextField(
                   controller: _controller,
+                  minLines: 1,
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.send,
                   style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: isListening ? 'Mendengarkan...' : 'Ketik atau ucapkan sesuatu...',

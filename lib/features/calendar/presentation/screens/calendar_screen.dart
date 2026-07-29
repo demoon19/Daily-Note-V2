@@ -31,14 +31,41 @@ class CalendarScreen extends ConsumerWidget {
             // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('JADWAL', style: AppTextStyles.eyebrow.copyWith(letterSpacing: 2)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_getMonthName(selectedDate.month)} ${selectedDate.year}',
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('JADWAL', style: AppTextStyles.eyebrow.copyWith(letterSpacing: 2)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_getMonthName(selectedDate.month)} ${selectedDate.year}',
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Menyinkronkan dengan Google Calendar...')),
+                      );
+                      ref.read(calendarActionsProvider.notifier).syncGoogleCalendar().then((_) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Sinkronisasi berhasil!')),
+                          );
+                        }
+                      }).catchError((err) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err.toString(), style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red),
+                          );
+                        }
+                      });
+                    },
+                    icon: const Icon(Icons.sync, color: AppColors.cyan),
+                    tooltip: 'Sync Google Calendar',
                   ),
                 ],
               ),

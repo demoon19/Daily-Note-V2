@@ -8,7 +8,8 @@ import 'package:googleapis/gmail/v1.dart' as gmail;
 /// menggunakan kredensial OAuth 2.0.
 class EmailListenerService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+    // Di Android, clientId memicu DEVELOPER_ERROR jika diisi dengan Client ID Android
+    // clientId: dotenv.env['GOOGLE_CLIENT_ID'],
     scopes: [
       gmail.GmailApi.gmailReadonlyScope,
     ],
@@ -20,11 +21,13 @@ class EmailListenerService {
     return await _googleSignIn.isSignedIn();
   }
 
-  Future<void> signIn() async {
+  Future<bool> signIn() async {
     try {
-      await _googleSignIn.signIn();
+      final account = await _googleSignIn.signIn();
+      return account != null;
     } catch (error) {
       print("Error signing in: $error");
+      throw Exception("Gagal login Google: $error");
     }
   }
 

@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:drift/drift.dart' hide Column;
 import '../../../core/ai/intent_models.dart';
 import '../../../core/ai/providers/llm_providers.dart';
 import '../../../core/ai/providers/intent_router_provider.dart';
 import '../../../core/ai/intent_router.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/database/app_database.dart';
 import '../domain/entities/chat_message_entity.dart';
 import '../../calendar/providers/calendar_providers.dart';
 import '../../todo/providers/todo_providers.dart';
@@ -21,16 +24,56 @@ final chatMessagesProvider =
 
 class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
   final Ref _ref;
-  ChatMessagesNotifier(this._ref)
-      : super([
-          ChatMessageEntity(
-            id: _uuid.v4(),
-            text:
-                'Halo! Aku asisten cerdasmu. Ada yang bisa aku bantu hari ini? Kamu bisa memintaku untuk mencatat pengeluaran, jadwal, to-do, ataupun sekadar mengobrol!',
-            sender: ChatSender.assistant,
-            timestamp: DateTime.now(),
-          )
-        ]);
+  ChatMessagesNotifier(this._ref) : super([]) {
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    final db = _ref.read(appDatabaseProvider);
+    final messages = await (db.select(db.chatMessages)
+          ..orderBy([(t) => OrderingTerm(expression: t.timestamp, mode: OrderingMode.asc)]))
+        .get();
+    
+    if (messages.isEmpty) {
+      final welcome = ChatMessageEntity(
+        id: _uuid.v4(),
+        text: 'Halo! Aku asisten cerdasmu. Ada yang bisa aku bantu hari ini?',
+        sender: ChatSender.assistant,
+        timestamp: DateTime.now(),
+      );
+      await _saveToDb(welcome);
+      state = [welcome];
+    } else {
+      state = messages.map((m) => ChatMessageEntity(
+        id: m.id,
+        text: m.textContent,
+        sender: m.sender == 0 ? ChatSender.user : ChatSender.assistant,
+        timestamp: m.timestamp,
+        intents: m.intentsJson != null ? IntentParseResponse.fromJsonString(m.intentsJson!).intents : null,
+      )).toList();
+    }
+  }
+
+  Future<void> _saveToDb(ChatMessageEntity msg) async {
+    final db = _ref.read(appDatabaseProvider);
+    await db.into(db.chatMessages).insert(
+      ChatMessagesCompanion.insert(
+        id: msg.id,
+        textContent: msg.text,
+        sender: msg.sender == ChatSender.user ? 0 : 1,
+        timestamp: msg.timestamp,
+        intentsJson: msg.intents == null 
+            ? const Value.absent() 
+            : Value(jsonEncode(IntentParseResponse(intents: msg.intents!).toJson())),
+      ),
+      mode: InsertMode.replace,
+    );
+  }
+
+  Future<void> _deleteFromDb(String id) async {
+    final db = _ref.read(appDatabaseProvider);
+    await (db.delete(db.chatMessages)..where((t) => t.id.equals(id))).go();
+  }
 
   /// Alur utama chat: user input -> IntentParserService.parse()
   /// -> IntentRouter.route() -> tampilkan hasil/balasan di chat.
@@ -53,6 +96,7 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
     );
 
     state = [...state, userMessage, loadingMessage];
+    await _saveToDb(userMessage);
 
     try {
       AppLogger.logIntentFlow('parsing_started', detail: text);
@@ -91,15 +135,17 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
           response.intents.any((i) => i.type != IntentType.chat);
       if (hasActionable) {
         _replaceLoadingWith('', intents: response.intents);
+        final summaryMsg = ChatMessageEntity(
+          id: _uuid.v4(),
+          text: _summarizeActions(response.intents),
+          sender: ChatSender.assistant,
+          timestamp: DateTime.now(),
+        );
         state = [
           ...state,
-          ChatMessageEntity(
-            id: _uuid.v4(),
-            text: _summarizeActions(response.intents),
-            sender: ChatSender.assistant,
-            timestamp: DateTime.now(),
-          )
+          summaryMsg
         ];
+        _saveToDb(summaryMsg);
       } else {
         // onChatReply sudah mengisi balasan lewat _appendAssistantReply
         _removeLoadingIfStillPresent();
@@ -119,27 +165,46 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessageEntity>> {
   void _replaceLoadingWith(String message, {List<IntentResult>? intents}) {
     final index = state.indexWhere((m) => m.isLoading);
     if (index == -1) {
+      final msg = ChatMessageEntity(
+        id: _uuid.v4(),
+        text: message,
+        sender: ChatSender.assistant,
+        timestamp: DateTime.now(),
+        intents: intents,
+      );
       state = [
         ...state,
-        ChatMessageEntity(
-          id: _uuid.v4(),
-          text: message,
-          sender: ChatSender.assistant,
-          timestamp: DateTime.now(),
-          intents: intents,
-        ),
+        msg,
       ];
+      _saveToDb(msg);
       return;
     }
     final updated = [...state];
     updated[index] = updated[index].copyWith(text: message, isLoading: false, intents: intents);
     state = updated;
+    _saveToDb(updated[index]);
   }
 
   void _removeLoadingIfStillPresent() {
     final stillLoading = state.any((m) => m.isLoading);
     if (stillLoading) {
       state = state.where((m) => !m.isLoading).toList();
+    }
+  }
+
+  void deleteMessage(String id) {
+    state = state.where((m) => m.id != id).toList();
+    _deleteFromDb(id);
+  }
+
+  void editMessage(String id, String newText) {
+    final index = state.indexWhere((m) => m.id == id);
+    if (index != -1) {
+      final updatedMsg = state[index].copyWith(text: newText);
+      final updatedList = [...state];
+      updatedList[index] = updatedMsg;
+      state = updatedList;
+      _saveToDb(updatedMsg);
     }
   }
 

@@ -7,6 +7,7 @@ import '../../../../core/notification/remindere_notification_service.dart';
 import '../../../../core/ai/intent_router.dart' show CalendarRepository;
 import '../../../../core/ai/intent_models.dart';
 import '../models/event_model.dart';
+import '../../../../core/network/google_calendar_service.dart';
 
 class EventRepositoryImpl implements IEventRepository, CalendarRepository {
   final AppDatabase _db;
@@ -92,11 +93,19 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
       body: event.title,
     );
     
+    // Auto-sync ke Google Calendar (tidak nge-blok UI karena berjalan asinkron)
+    GoogleCalendarService().syncEventToGoogle(event);
+    
     return id;
   }
 
   @override
   Future<void> delete(int id) async {
+    final row = await (_db.select(_db.calendarEvents)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row != null) {
+      final eventEntity = EventModel.fromDrift(row).toEntity();
+      GoogleCalendarService().deleteEventFromGoogle(eventEntity);
+    }
     await (_db.delete(_db.calendarEvents)..where((t) => t.id.equals(id))).go();
   }
 
@@ -122,5 +131,48 @@ class EventRepositoryImpl implements IEventRepository, CalendarRepository {
       location: intent.location,
       notes: intent.notes,
     ));
+  }
+
+  @override
+  Future<void> syncFromGoogle() async {
+    final googleEvents = await GoogleCalendarService().fetchEventsFromGoogle(interactive: true);
+    for (var gEvent in googleEvents) {
+      bool isAllDay = gEvent.notes != null && gEvent.notes!.startsWith('__ALL_DAY__');
+      
+      if (isAllDay) {
+        // Rute ke Todo
+        final existingTodo = await (_db.select(_db.todos)
+          ..where((t) => t.title.equals(gEvent.title) & t.dueDate.equals(gEvent.datetime)))
+          .get();
+          
+        if (existingTodo.isEmpty) {
+          await _db.into(_db.todos).insert(
+            TodosCompanion.insert(
+              title: gEvent.title,
+              isDone: const Value(false),
+              dueDate: Value(gEvent.datetime),
+            ),
+          );
+        }
+      } else {
+        // Rute normal ke Calendar
+        final existing = await (_db.select(_db.calendarEvents)
+          ..where((t) => t.title.equals(gEvent.title) & t.datetime.equals(gEvent.datetime)))
+          .get();
+          
+        if (existing.isEmpty) {
+          final model = EventModel.fromEntity(gEvent);
+          await _db.into(_db.calendarEvents).insert(
+            CalendarEventsCompanion.insert(
+              title: model.title,
+              datetime: model.datetime,
+              location: Value(model.location),
+              notes: Value(model.notes),
+              recurrence: Value(model.recurrence),
+            ),
+          );
+        }
+      }
+    }
   }
 }

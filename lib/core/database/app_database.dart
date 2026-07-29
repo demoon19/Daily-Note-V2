@@ -13,12 +13,13 @@ part 'app_database.g.dart';
   Notes,
   Expenses,
   Reminders,
+  ChatMessages,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -29,6 +30,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 3) {
           await m.addColumn(calendarEvents, calendarEvents.recurrence);
+        }
+        if (from < 4) {
+          await m.createTable(chatMessages);
         }
         await m.createAll();
       },

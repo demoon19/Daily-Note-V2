@@ -1424,6 +1424,322 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   }
 }
 
+class $ChatMessagesTable extends ChatMessages
+    with TableInfo<$ChatMessagesTable, ChatMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _textContentMeta =
+      const VerificationMeta('textContent');
+  @override
+  late final GeneratedColumn<String> textContent = GeneratedColumn<String>(
+      'text_content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _senderMeta = const VerificationMeta('sender');
+  @override
+  late final GeneratedColumn<int> sender = GeneratedColumn<int>(
+      'sender', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _intentsJsonMeta =
+      const VerificationMeta('intentsJson');
+  @override
+  late final GeneratedColumn<String> intentsJson = GeneratedColumn<String>(
+      'intents_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, textContent, sender, timestamp, intentsJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_messages';
+  @override
+  VerificationContext validateIntegrity(Insertable<ChatMessage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('text_content')) {
+      context.handle(
+          _textContentMeta,
+          textContent.isAcceptableOrUnknown(
+              data['text_content']!, _textContentMeta));
+    } else if (isInserting) {
+      context.missing(_textContentMeta);
+    }
+    if (data.containsKey('sender')) {
+      context.handle(_senderMeta,
+          sender.isAcceptableOrUnknown(data['sender']!, _senderMeta));
+    } else if (isInserting) {
+      context.missing(_senderMeta);
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    if (data.containsKey('intents_json')) {
+      context.handle(
+          _intentsJsonMeta,
+          intentsJson.isAcceptableOrUnknown(
+              data['intents_json']!, _intentsJsonMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMessage(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      textContent: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}text_content'])!,
+      sender: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sender'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
+      intentsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}intents_json']),
+    );
+  }
+
+  @override
+  $ChatMessagesTable createAlias(String alias) {
+    return $ChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class ChatMessage extends DataClass implements Insertable<ChatMessage> {
+  final String id;
+  final String textContent;
+  final int sender;
+  final DateTime timestamp;
+  final String? intentsJson;
+  const ChatMessage(
+      {required this.id,
+      required this.textContent,
+      required this.sender,
+      required this.timestamp,
+      this.intentsJson});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['text_content'] = Variable<String>(textContent);
+    map['sender'] = Variable<int>(sender);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    if (!nullToAbsent || intentsJson != null) {
+      map['intents_json'] = Variable<String>(intentsJson);
+    }
+    return map;
+  }
+
+  ChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessagesCompanion(
+      id: Value(id),
+      textContent: Value(textContent),
+      sender: Value(sender),
+      timestamp: Value(timestamp),
+      intentsJson: intentsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intentsJson),
+    );
+  }
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMessage(
+      id: serializer.fromJson<String>(json['id']),
+      textContent: serializer.fromJson<String>(json['textContent']),
+      sender: serializer.fromJson<int>(json['sender']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+      intentsJson: serializer.fromJson<String?>(json['intentsJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'textContent': serializer.toJson<String>(textContent),
+      'sender': serializer.toJson<int>(sender),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+      'intentsJson': serializer.toJson<String?>(intentsJson),
+    };
+  }
+
+  ChatMessage copyWith(
+          {String? id,
+          String? textContent,
+          int? sender,
+          DateTime? timestamp,
+          Value<String?> intentsJson = const Value.absent()}) =>
+      ChatMessage(
+        id: id ?? this.id,
+        textContent: textContent ?? this.textContent,
+        sender: sender ?? this.sender,
+        timestamp: timestamp ?? this.timestamp,
+        intentsJson: intentsJson.present ? intentsJson.value : this.intentsJson,
+      );
+  ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
+    return ChatMessage(
+      id: data.id.present ? data.id.value : this.id,
+      textContent:
+          data.textContent.present ? data.textContent.value : this.textContent,
+      sender: data.sender.present ? data.sender.value : this.sender,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+      intentsJson:
+          data.intentsJson.present ? data.intentsJson.value : this.intentsJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessage(')
+          ..write('id: $id, ')
+          ..write('textContent: $textContent, ')
+          ..write('sender: $sender, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('intentsJson: $intentsJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, textContent, sender, timestamp, intentsJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMessage &&
+          other.id == this.id &&
+          other.textContent == this.textContent &&
+          other.sender == this.sender &&
+          other.timestamp == this.timestamp &&
+          other.intentsJson == this.intentsJson);
+}
+
+class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
+  final Value<String> id;
+  final Value<String> textContent;
+  final Value<int> sender;
+  final Value<DateTime> timestamp;
+  final Value<String?> intentsJson;
+  final Value<int> rowid;
+  const ChatMessagesCompanion({
+    this.id = const Value.absent(),
+    this.textContent = const Value.absent(),
+    this.sender = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.intentsJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatMessagesCompanion.insert({
+    required String id,
+    required String textContent,
+    required int sender,
+    required DateTime timestamp,
+    this.intentsJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        textContent = Value(textContent),
+        sender = Value(sender),
+        timestamp = Value(timestamp);
+  static Insertable<ChatMessage> custom({
+    Expression<String>? id,
+    Expression<String>? textContent,
+    Expression<int>? sender,
+    Expression<DateTime>? timestamp,
+    Expression<String>? intentsJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (textContent != null) 'text_content': textContent,
+      if (sender != null) 'sender': sender,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (intentsJson != null) 'intents_json': intentsJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatMessagesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? textContent,
+      Value<int>? sender,
+      Value<DateTime>? timestamp,
+      Value<String?>? intentsJson,
+      Value<int>? rowid}) {
+    return ChatMessagesCompanion(
+      id: id ?? this.id,
+      textContent: textContent ?? this.textContent,
+      sender: sender ?? this.sender,
+      timestamp: timestamp ?? this.timestamp,
+      intentsJson: intentsJson ?? this.intentsJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (textContent.present) {
+      map['text_content'] = Variable<String>(textContent.value);
+    }
+    if (sender.present) {
+      map['sender'] = Variable<int>(sender.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (intentsJson.present) {
+      map['intents_json'] = Variable<String>(intentsJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('textContent: $textContent, ')
+          ..write('sender: $sender, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('intentsJson: $intentsJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1432,12 +1748,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NotesTable notes = $NotesTable(this);
   late final $ExpensesTable expenses = $ExpensesTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
+  late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [calendarEvents, todos, notes, expenses, reminders];
+      [calendarEvents, todos, notes, expenses, reminders, chatMessages];
 }
 
 typedef $$CalendarEventsTableCreateCompanionBuilder = CalendarEventsCompanion
@@ -2213,6 +2530,179 @@ typedef $$RemindersTableProcessedTableManager = ProcessedTableManager<
     (Reminder, BaseReferences<_$AppDatabase, $RemindersTable, Reminder>),
     Reminder,
     PrefetchHooks Function()>;
+typedef $$ChatMessagesTableCreateCompanionBuilder = ChatMessagesCompanion
+    Function({
+  required String id,
+  required String textContent,
+  required int sender,
+  required DateTime timestamp,
+  Value<String?> intentsJson,
+  Value<int> rowid,
+});
+typedef $$ChatMessagesTableUpdateCompanionBuilder = ChatMessagesCompanion
+    Function({
+  Value<String> id,
+  Value<String> textContent,
+  Value<int> sender,
+  Value<DateTime> timestamp,
+  Value<String?> intentsJson,
+  Value<int> rowid,
+});
+
+class $$ChatMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sender => $composableBuilder(
+      column: $table.sender, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get intentsJson => $composableBuilder(
+      column: $table.intentsJson, builder: (column) => ColumnFilters(column));
+}
+
+class $$ChatMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sender => $composableBuilder(
+      column: $table.sender, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get intentsJson => $composableBuilder(
+      column: $table.intentsJson, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ChatMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get textContent => $composableBuilder(
+      column: $table.textContent, builder: (column) => column);
+
+  GeneratedColumn<int> get sender =>
+      $composableBuilder(column: $table.sender, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+
+  GeneratedColumn<String> get intentsJson => $composableBuilder(
+      column: $table.intentsJson, builder: (column) => column);
+}
+
+class $$ChatMessagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ChatMessagesTable,
+    ChatMessage,
+    $$ChatMessagesTableFilterComposer,
+    $$ChatMessagesTableOrderingComposer,
+    $$ChatMessagesTableAnnotationComposer,
+    $$ChatMessagesTableCreateCompanionBuilder,
+    $$ChatMessagesTableUpdateCompanionBuilder,
+    (
+      ChatMessage,
+      BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>
+    ),
+    ChatMessage,
+    PrefetchHooks Function()> {
+  $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> textContent = const Value.absent(),
+            Value<int> sender = const Value.absent(),
+            Value<DateTime> timestamp = const Value.absent(),
+            Value<String?> intentsJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ChatMessagesCompanion(
+            id: id,
+            textContent: textContent,
+            sender: sender,
+            timestamp: timestamp,
+            intentsJson: intentsJson,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String textContent,
+            required int sender,
+            required DateTime timestamp,
+            Value<String?> intentsJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ChatMessagesCompanion.insert(
+            id: id,
+            textContent: textContent,
+            sender: sender,
+            timestamp: timestamp,
+            intentsJson: intentsJson,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ChatMessagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ChatMessagesTable,
+    ChatMessage,
+    $$ChatMessagesTableFilterComposer,
+    $$ChatMessagesTableOrderingComposer,
+    $$ChatMessagesTableAnnotationComposer,
+    $$ChatMessagesTableCreateCompanionBuilder,
+    $$ChatMessagesTableUpdateCompanionBuilder,
+    (
+      ChatMessage,
+      BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>
+    ),
+    ChatMessage,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2227,4 +2717,6 @@ class $AppDatabaseManager {
       $$ExpensesTableTableManager(_db, _db.expenses);
   $$RemindersTableTableManager get reminders =>
       $$RemindersTableTableManager(_db, _db.reminders);
+  $$ChatMessagesTableTableManager get chatMessages =>
+      $$ChatMessagesTableTableManager(_db, _db.chatMessages);
 }

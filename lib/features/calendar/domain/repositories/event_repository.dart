@@ -6,4 +6,5 @@ abstract class IEventRepository {
   Future<int> add(EventEntity event);
   Future<void> delete(int id);
   Future<void> update(EventEntity event);
+  Future<void> syncFromGoogle();
 }

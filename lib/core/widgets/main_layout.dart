@@ -118,7 +118,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           
           // Konten Layar (Child)
           Positioned.fill(
-            bottom: 70 + (bottomInset > 0 ? bottomInset : 0), // space for bottom nav
+            bottom: bottomInset > 0 ? bottomInset : 0,
             child: widget.child,
           ),
 
@@ -128,7 +128,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             Positioned(
               left: 20,
               right: 20,
-              bottom: bottomInset > 0 ? bottomInset + 14 : 70 + 14,
+              bottom: bottomInset > 0 ? bottomInset + 14 : 14,
               child: _buildAiBar(isListening),
             ),
         ],
@@ -161,6 +161,10 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             child: TextField(
               controller: _aiController,
               onSubmitted: (_) => _sendAiInput(),
+              minLines: 1,
+              maxLines: 5,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.send,
               style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'Ketik atau ucapkan sesuatu…',

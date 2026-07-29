@@ -37,3 +37,14 @@ class Reminders extends Table {
   DateTimeColumn get triggerAt => dateTime()();
   IntColumn get linkedEventId => integer().nullable()();
 }
+
+class ChatMessages extends Table {
+  TextColumn get id => text()();
+  TextColumn get textContent => text()();
+  IntColumn get sender => integer()(); // 0 for user, 1 for assistant
+  DateTimeColumn get timestamp => dateTime()();
+  TextColumn get intentsJson => text().nullable()(); // To store IntentResult list if any
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}

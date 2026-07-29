@@ -73,7 +73,20 @@ class IntentParseResponse {
 
   factory IntentParseResponse.fromJsonString(String jsonString) {
     try {
-      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      // Normalisasi teks untuk menghapus block markdown jika LLM mengembalikannya
+      String cleanedJson = jsonString.trim();
+      if (cleanedJson.startsWith('```')) {
+        final lines = cleanedJson.split('\n');
+        if (lines.first.startsWith('```')) {
+          lines.removeAt(0);
+        }
+        if (lines.last.trim() == '```') {
+          lines.removeLast();
+        }
+        cleanedJson = lines.join('\n').trim();
+      }
+
+      final decoded = jsonDecode(cleanedJson) as Map<String, dynamic>;
 
       final list = (decoded['intents'] as List<dynamic>? ?? [])
           .map((e) => IntentResult.fromJson(e as Map<String, dynamic>))

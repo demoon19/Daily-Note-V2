@@ -4,6 +4,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../../providers/settings_providers.dart';
 import '../../../../core/email/providers/email_providers.dart';
+import '../../../calendar/providers/calendar_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,6 +13,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(appSettingsProvider);
     final gmailAuthAsync = ref.watch(gmailAuthStatusProvider);
+    final calendarAuthAsync = ref.watch(googleCalendarAuthProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -67,8 +69,39 @@ class SettingsScreen extends ConsumerWidget {
               ),
               loading: () =>
                   const ListTile(title: Text('Memeriksa status Gmail...')),
-              error: (_, __) =>
-                  const ListTile(title: Text('Gagal memeriksa status Gmail')),
+              error: (err, __) =>
+                  ListTile(
+                    title: const Text('Gagal memeriksa status Gmail', style: TextStyle(color: Colors.red)),
+                    subtitle: Text(err.toString(), style: const TextStyle(color: Colors.red)),
+                  ),
+            ),
+            const Divider(),
+            calendarAuthAsync.when(
+              data: (isConnected) => ListTile(
+                leading: Icon(
+                  isConnected ? Icons.calendar_today : Icons.calendar_today_outlined,
+                  color: isConnected ? Colors.green : Colors.grey,
+                ),
+                title: const Text('Integrasi Google Calendar'),
+                subtitle: Text(isConnected
+                    ? 'Terhubung. Jadwal akan disinkronisasi otomatis.'
+                    : 'Belum terhubung ke Google Calendar'),
+                trailing: TextButton(
+                  onPressed: () {
+                    if (isConnected) {
+                      ref.read(googleCalendarAuthProvider.notifier).disconnect();
+                    } else {
+                      ref.read(googleCalendarAuthProvider.notifier).connect();
+                    }
+                  },
+                  child: Text(isConnected ? 'Putuskan' : 'Hubungkan'),
+                ),
+              ),
+              loading: () => const ListTile(title: Text('Memeriksa status Google Calendar...')),
+              error: (err, __) => ListTile(
+                title: const Text('Gagal memeriksa status Google Calendar', style: TextStyle(color: Colors.red)),
+                subtitle: Text(err.toString(), style: const TextStyle(color: Colors.red)),
+              ),
             ),
           ],
         ),
